@@ -35,14 +35,12 @@ impl Puzzle for Day1 {
             .lines()
             .map(|line| {
                 let min_idx = strings
-                    .clone()
-                    .into_iter()
+                    .iter()
                     .filter_map(|substring| line.find(substring))
                     .min()
                     .expect("first index was found");
                 let max_idx = strings
-                    .clone()
-                    .into_iter()
+                    .iter()
                     .filter_map(|substring| line.rfind(substring))
                     .max()
                     .expect("last index was found");
