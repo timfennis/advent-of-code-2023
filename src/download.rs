@@ -15,7 +15,7 @@ impl Downloader {
         Ok(Self { cookie })
     }
 
-    pub fn today(&self) -> anyhow::Result<()> {
+    pub fn today(&self) -> anyhow::Result<String> {
         let foo = time::OffsetDateTime::now_local().context("unable to get current day")?;
         let year = foo.year();
         let day = foo.day();
@@ -23,12 +23,13 @@ impl Downloader {
         self.day(year, day)
     }
 
-    pub fn day(&self, year: i32, day: u8) -> anyhow::Result<()> {
+    pub fn day(&self, year: i32, day: u8) -> anyhow::Result<String> {
         let path_string = format!("input/{year}/{day}");
         let path = Path::new(&path_string);
 
         if path.exists() {
-            return Ok(());
+            let input = std::fs::read_to_string(path).context("cannot open input")?;
+            return Ok(input);
         }
 
         std::fs::create_dir_all(path.parent().context("cannot get parent path")?)
@@ -51,6 +52,6 @@ impl Downloader {
         file.write_all(input.as_bytes())
             .context("unable to write to file")?;
 
-        Ok(())
+        Ok(input)
     }
 }
