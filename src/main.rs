@@ -11,7 +11,7 @@ fn main() -> anyhow::Result<()> {
 
     println!("Part 1: {}", part_1_output);
 
-    let part_2_output = year2023::Day1::part1(&input)?;
+    let part_2_output = year2023::Day1::part2(&input)?;
 
     println!("Part 2: {}", part_2_output);
 
