@@ -16,9 +16,9 @@ impl Downloader {
     }
 
     pub fn today(&self) -> anyhow::Result<String> {
-        let foo = time::OffsetDateTime::now_local().context("unable to get current day")?;
-        let year = foo.year();
-        let day = foo.day();
+        let date_time = time::OffsetDateTime::now_local().context("unable to get current day")?;
+        let year = date_time.year();
+        let day = date_time.day();
 
         self.day(year, day)
     }

@@ -5,7 +5,7 @@ mod year2023;
 
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
-    let input = downloader.day(2023, 1)?;
+    let input = downloader.today()?;
 
     let part_1_output = year2023::Day1::part1(&input)?;
 
@@ -19,10 +19,10 @@ fn main() -> anyhow::Result<()> {
 }
 
 pub trait Puzzle {
-    fn part1(input: &str) -> anyhow::Result<String> {
+    fn part1(_input: &str) -> anyhow::Result<String> {
         Ok(String::from("TODO"))
     }
-    fn part2(input: &str) -> anyhow::Result<String> {
+    fn part2(_input: &str) -> anyhow::Result<String> {
         Ok(String::from("TODO"))
     }
 }

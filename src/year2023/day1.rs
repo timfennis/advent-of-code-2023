@@ -1,8 +1,6 @@
-use anyhow::Context;
 use crate::Puzzle;
 
 pub struct Day1;
-
 
 impl Puzzle for Day1 {
     fn part1(input: &str) -> anyhow::Result<String> {
@@ -11,28 +9,27 @@ impl Puzzle for Day1 {
             .map(|line| {
                 let first = line
                     .chars()
-                    .into_iter()
-                    .filter(|d| d.is_digit(10))
-                    .next()
+                    .find(|d| d.is_ascii_digit())
                     .expect("first digit found");
                 let last = line
                     .chars()
-                    .into_iter()
-                    .filter(|d| d.is_digit(10))
+                    .filter(|d| d.is_ascii_digit())
                     .last()
                     .expect("last digit found");
 
-                format!("{first}{last}").parse::<u32>().expect("digits can be converted to u32")
+                format!("{first}{last}")
+                    .parse::<u32>()
+                    .expect("digits can be converted to u32")
             })
             .sum();
 
-        Ok(format!("{}", sum).into())
+        Ok(format!("{}", sum))
     }
 
     fn part2(input: &str) -> anyhow::Result<String> {
         let strings: Vec<&str> = vec![
-            "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-            "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "1", "2", "3",
+            "4", "5", "6", "7", "8", "9",
         ];
         let sum: u32 = input
             .lines()
@@ -62,11 +59,13 @@ impl Puzzle for Day1 {
                     .and_then(|&str| string_to_digit(str))
                     .expect("last digit was found");
 
-                format!("{first_digit}{last_digit}").parse::<u32>().expect("cannot convert digits to u32")
+                format!("{first_digit}{last_digit}")
+                    .parse::<u32>()
+                    .expect("cannot convert digits to u32")
             })
             .sum();
 
-        Ok(format!("{}", sum).into())
+        Ok(format!("{}", sum))
     }
 }
 
