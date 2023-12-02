@@ -1,10 +1,10 @@
-use crate::Puzzle;
+use crate::create_puzzle;
+use crate::puzzle::{Answerable, Puzzle};
 
-#[derive(Default)]
-pub struct Day1;
+create_puzzle!(Day1);
 
 impl Puzzle for Day1 {
-    fn part1(&mut self, input: &str) -> anyhow::Result<String> {
+    fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         let sum: u32 = input
             .lines()
             .map(|line| {
@@ -24,10 +24,8 @@ impl Puzzle for Day1 {
             })
             .sum();
 
-        Ok(format!("{}", sum))
-    }
+        self.submit_part1(sum);
 
-    fn part2(&mut self, input: &str) -> anyhow::Result<String> {
         let strings: Vec<&str> = vec![
             "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "1", "2", "3",
             "4", "5", "6", "7", "8", "9",
@@ -64,7 +62,9 @@ impl Puzzle for Day1 {
             })
             .sum();
 
-        Ok(format!("{}", sum))
+        self.submit_part2(sum);
+
+        Ok(())
     }
 }
 

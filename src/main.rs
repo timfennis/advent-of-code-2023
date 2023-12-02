@@ -1,26 +1,21 @@
-use crate::year2023::Day2;
+use crate::puzzle::{Answerable, Puzzle};
+use crate::year2023::{Day1, Day2};
 use download::Downloader;
 
 mod download;
+mod puzzle;
 mod year2023;
 
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
-    let input = downloader.today()?;
+    let input = downloader.day(2023, 2)?;
 
     let mut day: Day2 = Default::default();
 
-    println!("Part 1: {}", day.part1(&input)?);
-    println!("Part 2: {}", day.part2(&input)?);
+    day.handle_input(&input)?;
+
+    println!("Part 1: {}", day.answer().get_part1().unwrap_or("todo"));
+    println!("Part 2: {}", day.answer().get_part2().unwrap_or("todo"));
 
     Ok(())
-}
-
-pub trait Puzzle {
-    fn part1(&mut self, _input: &str) -> anyhow::Result<String> {
-        Ok(String::from("TODO"))
-    }
-    fn part2(&mut self, _input: &str) -> anyhow::Result<String> {
-        Ok(String::from("TODO"))
-    }
 }

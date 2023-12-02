@@ -1,14 +1,14 @@
-use crate::Puzzle;
+use crate::create_puzzle;
+use crate::puzzle::{Answerable, Puzzle};
 use std::collections::HashMap;
 
-#[derive(Default)]
-pub struct Day2 {
-    part1_sum: u32,
-    part2_sum: u32,
-}
+create_puzzle!(Day2);
 
 impl Puzzle for Day2 {
-    fn part1(&mut self, input: &str) -> anyhow::Result<String> {
+    fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
+        let mut part1_sum = 0;
+        let mut part2_sum = 0;
+
         for line in input.lines() {
             let (game, cubes) = line.split_once(": ").expect("game id followed by colon");
             let (_, id) = game.split_once(' ').expect("Game followed by the id");
@@ -47,15 +47,14 @@ impl Puzzle for Day2 {
             }
 
             if possible {
-                self.part1_sum += id;
+                part1_sum += id;
             }
 
-            self.part2_sum += min_red * min_blue * min_green
+            part2_sum += min_red * min_blue * min_green
         }
-        Ok(format!("{}", self.part1_sum))
-    }
+        self.submit_part1(part1_sum);
+        self.submit_part2(part2_sum);
 
-    fn part2(&mut self, _input: &str) -> anyhow::Result<String> {
-        Ok(format!("{}", self.part2_sum))
+        Ok(())
     }
 }
