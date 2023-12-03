@@ -1,8 +1,8 @@
-use std::cmp::max;
 use crate::create_solution;
 use crate::puzzle::{Answerable, Solution};
+use std::cmp::max;
 
-create_solution!(Day2,2023,2);
+create_solution!(Day2, 2023, 2);
 
 impl Solution for Day2 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {

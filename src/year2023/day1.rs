@@ -1,7 +1,7 @@
 use crate::create_solution;
 use crate::puzzle::{Answerable, Solution};
 
-create_solution!(Day1,2023,1);
+create_solution!(Day1, 2023, 1);
 
 impl Solution for Day1 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
@@ -12,6 +12,7 @@ impl Solution for Day1 {
                     .chars()
                     .find(|d| d.is_ascii_digit())
                     .expect("first digit found");
+
                 let last = line
                     .chars()
                     .filter(|d| d.is_ascii_digit())
@@ -38,6 +39,7 @@ impl Solution for Day1 {
                     .filter_map(|substring| line.find(substring))
                     .min()
                     .expect("first index was found");
+
                 let max_idx = strings
                     .iter()
                     .filter_map(|substring| line.rfind(substring))
