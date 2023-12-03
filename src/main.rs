@@ -2,6 +2,7 @@ use crate::puzzle::{Answerable, Solution};
 use download::Downloader;
 
 mod download;
+mod prelude;
 mod puzzle;
 mod year2023;
 
