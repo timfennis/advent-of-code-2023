@@ -4,7 +4,7 @@ use std::fmt::Display;
 macro_rules! create_solution {
     ($name:ident,$year:literal,$day:literal) => {
         pub struct $name {
-            answer: crate::puzzle::Answer,
+            answer: $crate::puzzle::Answer,
             pub year: i32,
             pub day: u8,
         }
@@ -12,7 +12,7 @@ macro_rules! create_solution {
         impl Default for $name {
             fn default() -> Self {
                 Self {
-                    answer: crate::puzzle::Answer {
+                    answer: $crate::puzzle::Answer {
                         part_1: None,
                         part_2: None,
                     },
@@ -21,12 +21,12 @@ macro_rules! create_solution {
                 }
             }
         }
-        impl crate::puzzle::Answerable for $name {
-            fn answer(&self) -> &crate::puzzle::Answer {
+        impl $crate::puzzle::Answerable for $name {
+            fn answer(&self) -> &$crate::puzzle::Answer {
                 &self.answer
             }
 
-            fn answer_mut(&mut self) -> &mut crate::puzzle::Answer {
+            fn answer_mut(&mut self) -> &mut $crate::puzzle::Answer {
                 &mut self.answer
             }
         }

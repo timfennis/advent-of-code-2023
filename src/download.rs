@@ -15,14 +15,6 @@ impl Downloader {
         Ok(Self { cookie })
     }
 
-    pub fn today(&self) -> anyhow::Result<String> {
-        let date_time = time::OffsetDateTime::now_local().context("unable to get current day")?;
-        let year = date_time.year();
-        let day = date_time.day();
-
-        self.day(year, day)
-    }
-
     pub fn day(&self, year: i32, day: u8) -> anyhow::Result<String> {
         let path_string = format!("input/{year}/{day}");
         let path = Path::new(&path_string);
