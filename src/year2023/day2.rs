@@ -1,10 +1,10 @@
-use crate::create_puzzle;
-use crate::puzzle::{Answerable, Puzzle};
+use crate::create_solution;
+use crate::puzzle::{Answerable, Solution};
 use std::collections::HashMap;
 
-create_puzzle!(Day2);
+create_solution!(Day2,2023,2);
 
-impl Puzzle for Day2 {
+impl Solution for Day2 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         let mut part1_sum = 0;
         let mut part2_sum = 0;

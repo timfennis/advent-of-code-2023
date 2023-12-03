@@ -1,7 +1,7 @@
-use crate::{create_puzzle, Puzzle};
+use crate::{create_solution, Solution};
 
-create_puzzle!(Day3);
-impl Puzzle for Day3 {
+create_solution!(Day3,2023,3);
+impl Solution for Day3 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         Ok(())
     }

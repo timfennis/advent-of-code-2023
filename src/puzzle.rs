@@ -1,10 +1,12 @@
 use std::fmt::Display;
 
 #[macro_export]
-macro_rules! create_puzzle {
-    ($name:ident) => {
+macro_rules! create_solution {
+    ($name:ident,$year:literal,$day:literal) => {
         pub struct $name {
             answer: crate::puzzle::Answer,
+            pub year: i32,
+            pub day: u8,
         }
 
         impl Default for $name {
@@ -14,6 +16,8 @@ macro_rules! create_puzzle {
                         part_1: None,
                         part_2: None,
                     },
+                    year: $year,
+                    day: $day,
                 }
             }
         }
@@ -28,7 +32,7 @@ macro_rules! create_puzzle {
         }
     };
 }
-pub trait Puzzle {
+pub trait Solution {
     fn handle_input(&mut self, _input: &str) -> anyhow::Result<()> {
         Ok(())
     }

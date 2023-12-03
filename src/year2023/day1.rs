@@ -1,9 +1,9 @@
-use crate::create_puzzle;
-use crate::puzzle::{Answerable, Puzzle};
+use crate::create_solution;
+use crate::puzzle::{Answerable, Solution};
 
-create_puzzle!(Day1);
+create_solution!(Day1,2023,1);
 
-impl Puzzle for Day1 {
+impl Solution for Day1 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         let sum: u32 = input
             .lines()

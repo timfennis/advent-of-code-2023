@@ -1,4 +1,4 @@
-use crate::puzzle::{Answerable, Puzzle};
+use crate::puzzle::{Answerable, Solution};
 use crate::year2023::{Day1, Day2};
 use download::Downloader;
 
@@ -8,9 +8,9 @@ mod year2023;
 
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
-    let input = downloader.day(2023, 2)?;
-
     let mut day: Day2 = Default::default();
+
+    let input = downloader.day(day.year, day.day)?;
 
     day.handle_input(&input)?;
 
