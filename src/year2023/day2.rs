@@ -1,6 +1,6 @@
+use std::cmp::max;
 use crate::create_solution;
 use crate::puzzle::{Answerable, Solution};
-use std::collections::HashMap;
 
 create_solution!(Day2,2023,2);
 
@@ -16,33 +16,38 @@ impl Solution for Day2 {
 
             let rounds = cubes.trim().split(';');
             let mut possible = true;
-            let mut min_red = 0;
-            let mut min_green = 0;
-            let mut min_blue = 0;
+            let mut max_red = 0;
+            let mut max_green = 0;
+            let mut max_blue = 0;
 
             for round in rounds {
-                let mut map: HashMap<String, u32> = Default::default();
                 for set in round.split(',') {
                     let (num, color) = set.trim().split_once(' ').unwrap();
-                    let entry = map.entry(color.trim().into()).or_insert(0);
-                    *entry += num.trim().parse::<u32>().expect("valid number of cubes");
-                }
 
-                if map.get("red") >= Some(&min_red) {
-                    min_red = *map.get("red").unwrap_or(&0);
-                }
-                if map.get("blue") >= Some(&min_blue) {
-                    min_blue = *map.get("blue").unwrap_or(&0);
-                }
-                if map.get("green") >= Some(&min_green) {
-                    min_green = *map.get("green").unwrap_or(&0);
-                }
-                if map.get("red") <= Some(&12)
-                    && map.get("green") <= Some(&13)
-                    && map.get("blue") <= Some(&14)
-                {
-                } else {
-                    possible = false
+                    let color = color.trim();
+                    let num = num.trim().parse::<u32>().expect("valid number of cubes");
+
+                    match (color, num) {
+                        ("red", num) => {
+                            if num > 12 {
+                                possible = false;
+                            }
+                            max_red = max(max_red, num);
+                        }
+                        ("green", num) => {
+                            if num > 13 {
+                                possible = false;
+                            }
+                            max_green = max(max_green, num);
+                        }
+                        ("blue", num) => {
+                            if num > 14 {
+                                possible = false;
+                            }
+                            max_blue = max(max_blue, num);
+                        }
+                        _ => {}
+                    }
                 }
             }
 
@@ -50,7 +55,7 @@ impl Solution for Day2 {
                 part1_sum += id;
             }
 
-            part2_sum += min_red * min_blue * min_green
+            part2_sum += max_red * max_blue * max_green
         }
         self.submit_part1(part1_sum);
         self.submit_part2(part2_sum);

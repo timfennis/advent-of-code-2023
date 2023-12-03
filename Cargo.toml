@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 dotenv = "0.15.0"
+itertools = "0.12.0"
 reqwest = { version = "0.11.22", features = ["blocking"] }
 time = { version = "0.3.30", features = ["local-offset"] }
