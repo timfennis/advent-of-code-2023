@@ -4,11 +4,12 @@ use download::Downloader;
 mod download;
 mod prelude;
 mod puzzle;
+mod year2019;
 mod year2023;
 
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
-    let mut day: year2023::Day4 = Default::default();
+    let mut day: year2019::Day4 = Default::default();
 
     let input = downloader.day(day.year, day.day)?;
 

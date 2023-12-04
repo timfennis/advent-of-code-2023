@@ -33,9 +33,7 @@ macro_rules! create_solution {
     };
 }
 pub trait Solution {
-    fn handle_input(&mut self, _input: &str) -> anyhow::Result<()> {
-        Ok(())
-    }
+    fn handle_input(&mut self, input: &str) -> anyhow::Result<()>;
 }
 pub trait Answerable {
     fn answer(&self) -> &Answer;

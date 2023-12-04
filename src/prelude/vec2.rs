@@ -1,4 +1,4 @@
-#[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug)]
+#[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug, Hash)]
 pub struct Vec2 {
     pub y: i64,
     pub x: i64,
@@ -6,8 +6,34 @@ pub struct Vec2 {
 
 #[allow(dead_code)]
 impl Vec2 {
+    pub fn origin() -> Self {
+        Self { x: 0, y: 0 }
+    }
     pub fn manhattan_distance(&self, other: &Self) -> u64 {
         self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
+    }
+
+    /// Create a new Vec2 moved in the given direction
+    /// Down is considered to be a negative y value
+    pub fn move_dir(&self, dir: Direction) -> Self {
+        match dir {
+            Direction::Right => Vec2 {
+                x: self.x + 1,
+                y: self.y,
+            },
+            Direction::Down => Vec2 {
+                x: self.x,
+                y: self.y - 1,
+            },
+            Direction::Left => Vec2 {
+                x: self.x - 1,
+                y: self.y,
+            },
+            Direction::Up => Vec2 {
+                x: self.x,
+                y: self.y + 1,
+            },
+        }
     }
 }
 
@@ -35,9 +61,17 @@ impl From<(usize, usize)> for Vec2 {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum Direction {
+    Right,
+    Down,
+    Left,
+    Up,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::prelude::Vec2;
+    use crate::prelude::{Direction, Vec2};
 
     #[test]
     fn from_tuple() {
@@ -51,5 +85,11 @@ mod tests {
         let b: Vec2 = (100, 100).into();
 
         assert_eq!(a.manhattan_distance(&b), 180);
+    }
+
+    #[test]
+    fn move_dir() {
+        let o = Vec2::origin();
+        assert_eq!(o.move_dir(Direction::Down), Vec2 { x: 0, y: -1 });
     }
 }
