@@ -12,11 +12,12 @@ impl Solution for Day4 {
 
         let mut part1_answer = 0;
         for line in input.lines() {
-            let (_game, data) = line.split_once(": ").expect("line must contain a ':'");
-            let (winning, my_numbers) = data.split_once(" | ").expect("line must contain '|'");
+            let (winning, my_numbers) = line[9..]
+                .split_once(" | ")
+                .expect("line must contain '|'");
 
-            let winning = winning.nums().into_iter().collect::<HashSet<_>>();
-            let my_numbers = my_numbers.nums().into_iter().collect::<HashSet<_>>();
+            let winning = winning.nums().collect::<HashSet<_>>();
+            let my_numbers = my_numbers.nums().collect::<HashSet<_>>();
 
             let win_count = my_numbers.intersection(&winning).count();
 

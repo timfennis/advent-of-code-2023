@@ -1,14 +1,20 @@
+use std::str::Chars;
+
 pub trait StringTools {
-    fn nums(self) -> Vec<u32>;
+    fn nums(&self) -> Nums;
 }
 
-//TODO: implement this as iterator instead of returning a vec
-impl StringTools for &str {
-    fn nums(self) -> Vec<u32> {
-        let mut current_num: Option<u32> = None;
-        let mut result = Vec::new();
+pub struct Nums<'a> {
+    iter: Chars<'a>,
+}
 
-        for c in self.chars() {
+impl<'a> Iterator for Nums<'a> {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut current_num: Option<u32> = None;
+
+        for c in self.iter.by_ref() {
             if let Some(digit) = c.to_digit(10) {
                 if let Some(num) = current_num.as_mut() {
                     *num *= 10;
@@ -16,16 +22,17 @@ impl StringTools for &str {
                 } else {
                     current_num = Some(digit);
                 }
-            } else if let Some(num) = current_num {
-                result.push(num);
-                current_num = None
+            } else if current_num.is_some() {
+                return current_num;
             }
         }
 
-        if let Some(num) = current_num {
-            result.push(num);
-        }
+        current_num
+    }
+}
 
-        result
+impl StringTools for &str {
+    fn nums(&self) -> Nums<'_> {
+        Nums { iter: self.chars() }
     }
 }
