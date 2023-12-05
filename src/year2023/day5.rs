@@ -1,11 +1,8 @@
-use crate::create_solution;
-use crate::prelude::StringTools;
-use crate::puzzle::{Answerable, Solution};
 use itertools::Itertools;
-use std::collections::HashMap;
-use std::env::current_dir;
-use std::ops::Range;
-use std::thread::current;
+
+use crate::create_solution;
+use crate::puzzle::{Answerable, Solution};
+
 create_solution!(Day5, 2023, 5);
 
 impl Solution for Day5 {
@@ -32,7 +29,7 @@ impl Solution for Day5 {
             .map(|(a, b)| *a..(*a + *b))
             .collect_vec();
 
-        let mut mappings: HashMap<(String, String), HashMap<_, _>> = Default::default();
+        let mut mappings: Vec<(String, String, Vec<(_, _)>)> = Default::default();
 
         for group in groups {
             let mut lines = group.lines();
@@ -43,7 +40,7 @@ impl Solution for Day5 {
                 .split_once("-to-")
                 .unwrap();
 
-            let mut current_dict: HashMap<_, _> = Default::default();
+            let mut current_dict: Vec<(_, _)> = Default::default();
 
             for mapping in lines {
                 let mut nums = mapping
@@ -56,10 +53,10 @@ impl Solution for Day5 {
 
                 let source_range = source_start..(source_start + offset);
                 let destination_range = dest_start..(dest_start + offset);
-                current_dict.insert(source_range, destination_range);
+                current_dict.push((source_range, destination_range));
             }
 
-            mappings.insert((from.into(), to.into()), current_dict);
+            mappings.push((from.into(), to.into(), current_dict));
         }
 
         let mut results = Vec::new();
@@ -71,14 +68,14 @@ impl Solution for Day5 {
             loop {
                 let cur_map = mappings
                     .iter()
-                    .find(|((from, _), _)| *from == kind)
+                    .find(|(from, _, _)| *from == kind)
                     .expect("one mapping must be found");
 
-                if let Some((s, e)) = cur_map.1.iter().find(|(start, _)| start.contains(&cur_num)) {
+                if let Some((s, e)) = cur_map.2.iter().find(|(start, _)| start.contains(&cur_num)) {
                     let diff = e.start as i128 - s.start as i128;
                     cur_num = ((cur_num as i128) + diff) as u64;
                 }
-                kind = &cur_map.0.1;
+                kind = &cur_map.1;
 
                 if kind == "location" {
                     results.push(cur_num);
@@ -97,15 +94,15 @@ impl Solution for Day5 {
             loop {
                 let cur_map = mappings
                     .iter()
-                    .find(|((_, from), _)| *from == kind)
+                    .find(|(_, from, _)| *from == kind)
                     .expect("one mapping must be found");
 
-                if let Some((s, e)) = cur_map.1.iter().find(|(_, end)| end.contains(&cur_num)) {
+                if let Some((s, e)) = cur_map.2.iter().find(|(_, end)| end.contains(&cur_num)) {
                     let diff = s.start as i128 - e.start as i128;
                     cur_num = ((cur_num as i128) + diff) as u64;
                 }
 
-                kind = &cur_map.0.0;
+                kind = &cur_map.0;
 
                 if kind == "seed" {
                     for range in seed_ranges.iter() {
