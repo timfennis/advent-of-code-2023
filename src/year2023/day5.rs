@@ -2,6 +2,7 @@ use itertools::Itertools;
 
 use crate::create_solution;
 use crate::puzzle::{Answerable, Solution};
+use rayon::prelude::*;
 
 create_solution!(Day5, 2023, 5);
 
@@ -87,35 +88,43 @@ impl Solution for Day5 {
         let p1 = results.into_iter().min().unwrap();
         self.submit_part1(p1);
 
-        for location in 0u64.. {
-            let mut cur_num = location;
-            let mut kind = "location";
+        let mut sr = seed_ranges.clone();
+        sr.sort_by(|a, b| a.start.cmp(&b.start));
+        // sr.sort_by(|a,b| a.start.cmp(b.start));
 
-            loop {
-                let cur_map = mappings
-                    .iter()
-                    .find(|(_, from, _)| *from == kind)
-                    .expect("one mapping must be found");
 
-                if let Some((s, e)) = cur_map.2.iter().find(|(_, end)| end.contains(&cur_num)) {
-                    let diff = s.start as i128 - e.start as i128;
-                    cur_num = ((cur_num as i128) + diff) as u64;
-                }
+        let res = sr.par_iter().map(|range| {
+            let mut lowest = u64::MAX;
+            println!("---------------------- {:#?} ----------------------", range);
+            for seed_num in range.clone() {
+                let mut cur_num = seed_num;
+                let mut kind = "seed";
 
-                kind = &cur_map.0;
+                loop {
+                    let cur_map = mappings
+                        .iter()
+                        .find(|(from, _, _)| *from == kind)
+                        .expect("one mapping must be found");
 
-                if kind == "seed" {
-                    for range in seed_ranges.iter() {
-                        if range.contains(&cur_num) {
-                            self.submit_part2(location);
-                            return Ok(());
-                        }
+                    if let Some((s, e)) = cur_map.2.iter().find(|(start, _)| start.contains(&cur_num)) {
+                        let diff = e.start as i128 - s.start as i128;
+                        cur_num = ((cur_num as i128) + diff) as u64;
                     }
+                    kind = &cur_map.1;
 
-                    break;
+                    if kind == "location" {
+                        lowest = std::cmp::min(lowest, cur_num);
+                        // println!("New lowest: {lowest}");
+                        break;
+                    }
                 }
             }
-        }
+
+            lowest
+        }).min().unwrap();
+
+        self.submit_part2(res);
+
 
         Ok(())
     }
