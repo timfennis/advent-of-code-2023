@@ -66,7 +66,7 @@ impl Solution for Day5 {
 
         for seed_num in seed_nums {
             let mut cur_num = seed_num;
-            let mut kind = "seed".to_owned();
+            let mut kind = "seed";
 
             loop {
                 let cur_map = mappings
@@ -78,7 +78,7 @@ impl Solution for Day5 {
                     let diff = e.start as i128 - s.start as i128;
                     cur_num = ((cur_num as i128) + diff) as u64;
                 }
-                kind = cur_map.0.clone().1;
+                kind = &cur_map.0.1;
 
                 if kind == "location" {
                     results.push(cur_num);
@@ -92,7 +92,7 @@ impl Solution for Day5 {
 
         for location in 0u64.. {
             let mut cur_num = location;
-            let mut kind = "location".to_owned();
+            let mut kind = "location";
 
             loop {
                 let cur_map = mappings
@@ -105,7 +105,7 @@ impl Solution for Day5 {
                     cur_num = ((cur_num as i128) + diff) as u64;
                 }
 
-                kind = cur_map.0.clone().0;
+                kind = &cur_map.0.0;
 
                 if kind == "seed" {
                     for range in seed_ranges.iter() {
