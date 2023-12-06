@@ -1,7 +1,8 @@
 use crate::create_solution;
 use crate::prelude::StringTools;
 use crate::puzzle::{Answerable, Solution};
-use itertools::Itertools;
+use itertools::{fold, Itertools};
+use std::ops::{Add, Div, Neg, Sub};
 create_solution!(Day6, 2023, 6);
 
 impl Solution for Day6 {
@@ -16,31 +17,30 @@ impl Solution for Day6 {
 
         let p1_input = line1.nums::<u64>().zip(line2.nums::<u64>());
 
-        let mut p1_answer = 1;
-        for (mt, md) in p1_input {
-            p1_answer *= count_winning_races(mt, md);
-        }
+        let p1_answer = p1_input
+            .map(|(time, dist)| solve(time, dist))
+            .product::<u64>();
 
         self.submit_part1(p1_answer);
 
         let time = line1[10..].replace(' ', "").parse::<u64>().unwrap();
         let dist = line2[10..].replace(' ', "").parse::<u64>().unwrap();
 
-        self.submit_part2(count_winning_races(time, dist));
+        let p2_answer = solve(time, dist);
+        self.submit_part2(p2_answer);
+
+        assert_eq!(4403592, p1_answer, "Part 1 is incorrect");
+        assert_eq!(38017587, p2_answer, "Part 2 is incorrect");
 
         Ok(())
     }
 }
 
-fn count_winning_races(max_time: u64, max_dist: u64) -> u64 {
-    let mut count = 0;
-    for hold_for in 0..max_time {
-        let go_for = max_time - hold_for;
-        let distance = go_for * hold_for;
-        if distance > max_dist {
-            count += 1;
-        }
-    }
+fn solve(max_time: u64, max_dist: u64) -> u64 {
+    let max_time = max_time as f64;
+    let max_dist = max_dist as f64;
 
-    count
+    let upper = (max_time + (max_time.neg().powi(2) - 4.0 * max_dist).sqrt()).div(2.0);
+    let lower = (max_time - (max_time.neg().powi(2) - 4.0 * max_dist).sqrt()).div(2.0);
+    (upper.ceil() - lower.ceil()) as u64
 }
