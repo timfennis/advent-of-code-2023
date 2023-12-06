@@ -14,19 +14,7 @@ impl Solution for Day6 {
             .next()
             .expect("file must contain 2 lines: missing second");
 
-        let p1_input = line1
-            .split_ascii_whitespace()
-            .dropping(1)
-            .map(|num| {
-                num.parse::<u64>()
-                    .unwrap_or_else(|_| panic!("{} is not a valid int", num))
-            })
-            .zip(
-                line2
-                    .split_ascii_whitespace()
-                    .dropping(1)
-                    .map(|num| num.parse::<u64>().unwrap()),
-            );
+        let p1_input = line1.nums::<u64>().zip(line2.nums::<u64>());
 
         let mut p1_answer = 1;
         for (mt, md) in p1_input {

@@ -14,8 +14,8 @@ impl Solution for Day4 {
         for line in input.lines() {
             let (winning, my_numbers) = line[9..].split_once(" | ").expect("line must contain '|'");
 
-            let winning = winning.nums().collect::<HashSet<_>>();
-            let my_numbers = my_numbers.nums().collect::<HashSet<_>>();
+            let winning = winning.nums().collect::<HashSet<u32>>();
+            let my_numbers = my_numbers.nums().collect::<HashSet<u32>>();
 
             let win_count = my_numbers.intersection(&winning).count();
 

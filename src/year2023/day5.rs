@@ -1,6 +1,7 @@
 use itertools::Itertools;
 
 use crate::create_solution;
+use crate::prelude::StringTools;
 use crate::puzzle::{Answerable, Solution};
 
 create_solution!(Day5, 2023, 5);
@@ -16,17 +17,12 @@ impl Solution for Day5 {
             .split_once(": ")
             .expect("first line must contain a colon ':'");
 
-        let seed_nums = seeds
-            .trim()
-            .split_ascii_whitespace()
-            .map(|num| num.parse::<u64>())
-            .collect::<Result<Vec<_>, _>>()
-            .expect("seed numbers must be valid 64 bit integers");
+        let seed_nums = seeds.nums::<u64>();
 
-        let seed_ranges = seed_nums
-            .iter()
+        let seed_ranges = seeds
+            .nums::<u64>()
             .tuples()
-            .map(|(a, b)| *a..(*a + *b))
+            .map(|(a, b)| a..(a + b))
             .collect_vec();
 
         let mut mappings: Vec<(String, String, Vec<(_, _)>)> = Default::default();
@@ -43,9 +39,7 @@ impl Solution for Day5 {
             let mut current_dict: Vec<(_, _)> = Default::default();
 
             for mapping in lines {
-                let mut nums = mapping
-                    .split_ascii_whitespace()
-                    .map(|num| num.parse::<u64>().unwrap());
+                let mut nums = mapping.nums::<u64>();
 
                 let dest_start = nums.next().expect("mapping must have 3 numbers");
                 let source_start = nums.next().expect("mapping must have 3 numbers");
