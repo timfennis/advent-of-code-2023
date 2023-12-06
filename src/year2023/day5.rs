@@ -71,7 +71,11 @@ impl Solution for Day5 {
                     .find(|(from, _, _)| *from == kind)
                     .expect("one mapping must be found");
 
-                if let Some((s, e)) = cur_map.2.iter().find(|(start, _)| start.contains(&cur_num)) {
+                if let Some((s, e)) = cur_map
+                    .2
+                    .iter()
+                    .find(|(source, _)| source.contains(&cur_num))
+                {
                     let diff = e.start as i128 - s.start as i128;
                     cur_num = ((cur_num as i128) + diff) as u64;
                 }
@@ -84,7 +88,7 @@ impl Solution for Day5 {
             }
         }
 
-        let p1 = results.into_iter().min().unwrap();
+        let p1 = results.into_iter().min().expect("there must be a result");
         self.submit_part1(p1);
 
         for location in 0u64.. {
