@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::ops;
 use std::str::Chars;
@@ -11,9 +12,10 @@ pub struct Nums<'a, T> {
     iter: Chars<'a>,
 }
 
-impl<'a, T> Iterator for Nums<'a, T>
+impl<'a, T, E> Iterator for Nums<'a, T>
 where
-    T: ops::Add<Output = T> + ops::Mul<Output = T> + From<u32> + Copy,
+    T: ops::Add<Output = T> + ops::Mul<Output = T> + TryFrom<u32, Error = E> + Copy,
+    E: Debug,
 {
     type Item = T;
 
@@ -23,10 +25,14 @@ where
         for c in self.iter.by_ref() {
             if let Some(digit) = c.to_digit(10) {
                 if let Some(num) = current_num.as_mut() {
-                    *num = *num * T::from(10);
-                    *num = *num + T::from(digit);
+                    *num = *num * T::try_from(10).expect("must be able to construct from 10");
+                    *num = *num
+                        + T::try_from(digit)
+                            .expect("must be able to construct from digit character");
                 } else {
-                    current_num = Some(T::from(digit));
+                    current_num = Some(
+                        T::try_from(digit).expect("must be able to construct for digit character"),
+                    );
                 }
             } else if current_num.is_some() {
                 return current_num;

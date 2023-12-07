@@ -39,7 +39,7 @@ impl Hand {
     fn score_part1(&self) -> u32 {
         let values = self.tally();
 
-        Self::score_tally(&values)
+        Self::score_tally(values)
     }
 
     fn score_part2(&self) -> u32 {
@@ -55,31 +55,27 @@ impl Hand {
         // Add the joker to the best score now at the bottom
         values[12] += joker_count;
 
-        Self::score_tally(&values)
+        // let foo = ;
+        Self::score_tally(values)
     }
 
-    fn score_tally(values: &[u8]) -> u32 {
-        // Figure out the ordering of the hand
-        if values.contains(&5) {
-            return 7;
-        }
+    fn score_tally(values: [u8; 13]) -> u32 {
+        // remove all zeroes from the tally
+        let mut values = values.into_iter().filter(|p| *p != 0).collect_vec();
 
-        if values.contains(&4) {
-            return 6;
-        }
+        // sort the tally for matching
+        values.sort();
 
-        if values.contains(&3) {
-            return if values.contains(&2) { 5 } else { 4 };
+        match values.as_slice() {
+            [5] => 7,
+            [1, 4] => 6,
+            [2, 3] => 5,
+            [1, 1, 3] => 4,
+            [1, 2, 2] => 3,
+            [1, 1, 1, 2] => 2,
+            [1, 1, 1, 1, 1] => 1,
+            _ => unreachable!(),
         }
-        if values.iter().filter(|v| **v == 2).count() == 2 {
-            return 3;
-        }
-
-        if values.contains(&2) {
-            return 2;
-        }
-
-        1
     }
     fn cmp_part_1(&self, other: &Self) -> Ordering {
         let card_value_order = [
@@ -123,6 +119,7 @@ impl FromStr for Hand {
         })
     }
 }
+
 impl Solution for Day7 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         let mut hands = input

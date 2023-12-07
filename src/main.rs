@@ -9,7 +9,8 @@ mod year2023;
 
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
-    let mut day: year2023::Day7 = Default::default();
+    // let mut day: year2023::Day7 = Default::default();
+    let mut day: year2019::Day5 = Default::default();
 
     execute(&mut day, &downloader)?;
 
@@ -25,4 +26,29 @@ fn execute<T: Solution + Puzzle + Answerable>(
 ) -> anyhow::Result<()> {
     let input = downloader.day(solution.year(), solution.day())?;
     solution.handle_input(&input)
+}
+
+#[cfg(test)]
+pub mod test {
+    use crate::download::Downloader;
+    use crate::execute;
+    use crate::puzzle::{Answerable, Puzzle, Solution};
+    use std::fmt::Display;
+
+    pub fn check<T: Solution + Puzzle + Answerable>(
+        solution: &mut T,
+        expected_part_1: impl Display,
+        expected_part_2: impl Display,
+    ) {
+        let downloader = Downloader::from_env().expect("must be able to construct a downloader");
+        execute(solution, &downloader).expect("solution returns OK");
+        assert_eq!(
+            solution.answer().part_1,
+            Some(format!("{}", expected_part_1))
+        );
+        assert_eq!(
+            solution.answer().part_2,
+            Some(format!("{}", expected_part_2))
+        );
+    }
 }
