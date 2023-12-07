@@ -39,27 +39,7 @@ impl Hand {
     fn score_part1(&self) -> u32 {
         let values = self.tally();
 
-        // Figure out the ordering of the hand
-        if values.contains(&5) {
-            return 7;
-        }
-
-        if values.contains(&4) {
-            return 6;
-        }
-
-        if values.contains(&3) {
-            return if values.contains(&2) { 5 } else { 4 };
-        }
-        if values.iter().filter(|v| **v == 2).count() == 2 {
-            return 3;
-        }
-
-        if values.contains(&2) {
-            return 2;
-        }
-
-        1
+        Self::score_tally(&values)
     }
 
     fn score_part2(&self) -> u32 {
@@ -74,6 +54,11 @@ impl Hand {
 
         // Add the joker to the best score now at the bottom
         values[12] += joker_count;
+
+        Self::score_tally(&values)
+    }
+
+    fn score_tally(values: &[u8]) -> u32 {
 
         // Figure out the ordering of the hand
         if values.contains(&5) {
