@@ -21,6 +21,16 @@ macro_rules! create_solution {
                 }
             }
         }
+
+        impl $crate::puzzle::Puzzle for $name {
+            fn day(&self) -> u8 {
+                self.day
+            }
+            fn year(&self) -> i32 {
+                self.year
+            }
+        }
+
         impl $crate::puzzle::Answerable for $name {
             fn answer(&self) -> &$crate::puzzle::Answer {
                 &self.answer
@@ -46,6 +56,11 @@ pub trait Answerable {
     fn submit_part2<T: Display>(&mut self, val: T) {
         self.answer_mut().part2(format!("{}", val))
     }
+}
+
+pub trait Puzzle {
+    fn year(&self) -> i32;
+    fn day(&self) -> u8;
 }
 
 #[derive(Default)]

@@ -29,9 +29,6 @@ impl Solution for Day6 {
         let p2_answer = solve(time, dist);
         self.submit_part2(p2_answer);
 
-        assert_eq!(4403592, p1_answer, "Part 1 is incorrect");
-        assert_eq!(38017587, p2_answer, "Part 2 is incorrect");
-
         Ok(())
     }
 }

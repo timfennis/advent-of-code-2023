@@ -59,7 +59,6 @@ impl Hand {
     }
 
     fn score_tally(values: &[u8]) -> u32 {
-
         // Figure out the ordering of the hand
         if values.contains(&5) {
             return 7;
@@ -153,9 +152,6 @@ impl Solution for Day7 {
             .sum();
 
         self.submit_part2(part_2_ans);
-
-        assert_eq!(part_1_ans, 250946742);
-        assert_eq!(part_2_ans, 251824095);
 
         Ok(())
     }

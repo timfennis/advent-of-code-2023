@@ -29,8 +29,6 @@ impl Solution for Day4 {
 
         self.submit_part1(part1_answer);
 
-        assert_eq!(part1_answer, 20117);
-
         let mut cards = [1usize; 198];
 
         for (game_id, win_count) in games.into_iter().enumerate() {
@@ -44,8 +42,6 @@ impl Solution for Day4 {
         let part2_answer = cards.into_iter().sum::<usize>();
 
         self.submit_part2(part2_answer);
-
-        assert_eq!(part2_answer, 13768818);
 
         Ok(())
     }

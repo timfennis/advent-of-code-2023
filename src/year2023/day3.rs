@@ -66,9 +66,6 @@ impl Solution for Day3 {
 
         self.submit_part1(sum);
 
-        assert_ne!(sum, 541192);
-        assert_eq!(sum, 537832);
-
         let mut p2 = 0;
         for (_, nums) in gears {
             assert!(nums.len() <= 2);
@@ -79,8 +76,6 @@ impl Solution for Day3 {
         }
 
         self.submit_part2(p2);
-
-        assert_eq!(p2, 81939900);
         Ok(())
     }
 }
