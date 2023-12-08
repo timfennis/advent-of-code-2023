@@ -11,9 +11,13 @@ impl Solution for Day8 {
 
         let mut adj: AHashMap<&str, (&str, &str)> = AHashMap::default();
         for line in input.lines() {
-            let (from, to) = line.split_once(" = ").unwrap();
+            let (from, to) = line
+                .split_once(" = ")
+                .expect("input must contain an = surrounded by whitespaces");
             let to = to.trim_start_matches('(').trim_end_matches(')');
-            let (a, b) = to.split_once(", ").unwrap();
+            let (a, b) = to
+                .split_once(", ")
+                .expect("input must contain a comma followed by a space");
 
             adj.insert(from, (a, b));
         }
