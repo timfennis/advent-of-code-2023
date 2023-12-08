@@ -9,8 +9,8 @@ mod year2023;
 
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
-    // let mut day: year2023::Day7 = Default::default();
-    let mut day: year2019::Day5 = Default::default();
+    let mut day: year2023::Day8 = Default::default();
+    // let mut day: year2019::Day5 = Default::default();
 
     execute(&mut day, &downloader)?;
 

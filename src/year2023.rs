@@ -7,6 +7,7 @@ pub use day4::*;
 pub use day5::*;
 pub use day6::*;
 pub use day7::*;
+pub use day8::*;
 
 mod day1;
 mod day2;
@@ -15,6 +16,7 @@ mod day4;
 mod day5;
 mod day6;
 mod day7;
+mod day8;
 
 #[cfg(test)]
 mod test {
@@ -54,5 +56,9 @@ mod test {
     #[test]
     pub fn year_2023_day_7() {
         check(&mut year2023::Day7::default(), 250946742, 251824095);
+    }
+    #[test]
+    pub fn year_2023_day_8() {
+        check(&mut year2023::Day8::default(), 17141, 10818234074807u64);
     }
 }
