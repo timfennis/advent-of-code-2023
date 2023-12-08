@@ -22,12 +22,12 @@ impl Solution for Day8 {
             adj.insert(from, (a, b));
         }
 
-        self.submit_part1(solve("AAA", lr, &adj));
+        self.submit_part1(solve("AAA", lr, &adj, |cur| cur == "ZZZ"));
 
         let part2_ans = adj
             .keys()
             .filter(|k| k.ends_with('A'))
-            .map(|start| solve(start, lr, &adj))
+            .map(|start| solve(start, lr, &adj, |cur| cur.ends_with('Z')))
             .reduce(num::integer::lcm)
             .expect("the number of solutions must be > 0");
 
@@ -36,7 +36,12 @@ impl Solution for Day8 {
     }
 }
 
-fn solve(start: &str, lr: &str, adj: &AHashMap<&str, (&str, &str)>) -> u64 {
+fn solve(
+    start: &str,
+    lr: &str,
+    adj: &AHashMap<&str, (&str, &str)>,
+    finished: fn(&str) -> bool,
+) -> u64 {
     let mut cur = start;
     for (steps, ins) in lr.chars().cycle().enumerate() {
         let (nl, nr) = adj
@@ -44,7 +49,7 @@ fn solve(start: &str, lr: &str, adj: &AHashMap<&str, (&str, &str)>) -> u64 {
             .unwrap_or_else(|| panic!("{cur} must exist in adjacency map"));
         cur = if ins == 'L' { nl } else { nr };
 
-        if cur.ends_with('Z') {
+        if finished(cur) {
             return steps as u64 + 1;
         }
     }
