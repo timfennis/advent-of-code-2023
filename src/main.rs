@@ -25,7 +25,7 @@ fn execute<T: Solution + Puzzle + Answerable>(
     downloader: &Downloader,
 ) -> anyhow::Result<()> {
     let input = downloader.day(solution.year(), solution.day())?;
-    solution.handle_input(&input)
+    solution.handle_input(input.replace("\r\n", "\n").trim())
 }
 
 #[cfg(test)]
