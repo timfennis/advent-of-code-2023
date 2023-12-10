@@ -135,7 +135,7 @@ mod test {
 
     #[test]
     fn simple() {
-        let p = sim(&parse("U5"));
+        let p = sim(&parse("D5"));
 
         assert_eq!(
             p,

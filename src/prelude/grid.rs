@@ -2,10 +2,12 @@ use crate::prelude::Vec2;
 
 type GridObject = (Vec2, char);
 
+//TODO: no clone
+#[derive(Clone)]
 pub struct Grid {
     width: usize,
     height: usize,
-    objects: Vec<GridObject>,
+    pub objects: Vec<GridObject>,
 }
 
 impl IntoIterator for Grid {
@@ -58,6 +60,21 @@ impl Grid {
         }
     }
 
+    pub fn neighbours4(&self, pos: impl Into<Vec2>) -> Vec<Vec2> {
+        let Vec2 { x, y } = pos.into();
+        debug_assert!(x < self.width as i64);
+        debug_assert!(y < self.height as i64);
+
+        vec![
+            Vec2 { x, y: y - 1 },
+            Vec2 { x: x - 1, y },
+            Vec2 { x: x + 1, y },
+            Vec2 { x, y: y + 1 },
+        ]
+        .into_iter()
+        .filter(|p| p.x < self.width as i64 && p.x >= 0 && p.y >= 0 && p.y < self.height as i64)
+        .collect()
+    }
     pub fn neighbours8(&self, pos: impl Into<Vec2>) -> Vec<Vec2> {
         let Vec2 { x, y } = pos.into();
         debug_assert!(x < self.width as i64);
@@ -84,6 +101,14 @@ impl Grid {
             .find(|(op, _c)| *op == *pos)
             .map(|(_, c)| c)
             .copied()
+    }
+
+    pub fn width(&self) -> usize {
+        return self.width;
+    }
+
+    pub fn height(&self) -> usize {
+        return self.height;
     }
 }
 

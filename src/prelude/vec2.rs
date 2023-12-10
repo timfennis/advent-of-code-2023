@@ -1,4 +1,6 @@
-#[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug, Hash)]
+use std::fmt::{write, Display, Formatter};
+
+#[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug, Hash, Copy)]
 pub struct Vec2 {
     pub y: i64,
     pub x: i64,
@@ -23,7 +25,7 @@ impl Vec2 {
             },
             Direction::Down => Vec2 {
                 x: self.x,
-                y: self.y - 1,
+                y: self.y + 1,
             },
             Direction::Left => Vec2 {
                 x: self.x - 1,
@@ -31,9 +33,15 @@ impl Vec2 {
             },
             Direction::Up => Vec2 {
                 x: self.x,
-                y: self.y + 1,
+                y: self.y - 1,
             },
         }
+    }
+}
+
+impl Display for Vec2 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{}", self.x, self.y)
     }
 }
 
@@ -90,6 +98,6 @@ mod tests {
     #[test]
     fn move_dir() {
         let o = Vec2::origin();
-        assert_eq!(o.move_dir(Direction::Down), Vec2 { x: 0, y: -1 });
+        assert_eq!(o.move_dir(Direction::Down), Vec2 { x: 0, y: 1 });
     }
 }
