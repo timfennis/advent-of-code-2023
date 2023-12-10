@@ -8,43 +8,16 @@ use std::fmt::{Display, Formatter};
 use std::path::Component::ParentDir;
 create_solution!(Day10, 2023, 10);
 
-#[derive(Debug, Clone, Copy)]
-enum Side {
-    A,
-    B,
-}
-
-impl Display for Side {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Side::A => 'A',
-                Side::B => 'B',
-            }
-        )
-    }
-}
-
-impl Side {
-    fn invert(&self) -> Self {
-        match self {
-            Side::A => Side::B,
-            Side::B => Side::A,
-        }
-    }
-}
 impl Solution for Day10 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         let grid = Grid::from_string(input, |c| c != '.');
 
-        let mut seen: AHashMap<Vec2, u32> = Default::default();
+        let mut loop_to_dist: AHashMap<Vec2, u32> = Default::default();
         let mut queue = VecDeque::new();
 
         for (pos, char) in grid {
             if char == 'S' {
-                seen.insert(pos, 0u32);
+                loop_to_dist.insert(pos, 0u32);
                 queue.push_front((pos, 0u32));
             }
         }
@@ -69,183 +42,89 @@ impl Solution for Day10 {
                     .and_then(|c| grid.get_object(&next_pos).map(|n| (c, n)))
                 {
                     if (is_connected(me, next_char, dir))
-                        && *seen.get(&next_pos).unwrap_or(&u32::MAX) > (cur_dist + 1u32)
+                        && *loop_to_dist.get(&next_pos).unwrap_or(&u32::MAX) > (cur_dist + 1u32)
                     {
                         // dbg!(&queue.len(), seen.len());
                         queue.push_back((next_pos, cur_dist + 1));
-                        seen.insert(next_pos, cur_dist + 1);
+                        loop_to_dist.insert(next_pos, cur_dist + 1);
                     }
                 }
             }
         }
 
-        self.submit_part1(seen.values().max().unwrap());
+        self.submit_part1(loop_to_dist.values().max().unwrap());
 
-        // Floodfill
-        let mut seen_part2: AHashSet<Vec2> = Default::default();
-        let mut outside: AHashSet<Vec2> = Default::default();
-        let cur = Vec2::origin();
-        let mut buf: VecDeque<(Vec2, Option<Side>)> = Default::default();
+        let mut massive_grid: AHashMap<Vec2, char> = AHashMap::default();
 
-        outside.insert(cur);
-        buf.push_front((cur, None));
+        let shapes = AHashMap::from([
+            ('7', "___\n##_\n_#_"),
+            ('7', "___\n##_\n_#_"),
+            ('J', "_#_\n##_\n___"),
+            ('L', "_#_\n_##\n___"),
+            ('F', "___\n_##\n_#_"),
+            ('|', "_#_\n_#_\n_#_"),
+            ('-', "___\n###\n___"),
+        ]);
 
-        while let Some((pos, side)) = buf.pop_front() {
+        for (point, _) in &loop_to_dist {
+            let shape = *grid
+                .get_object(point)
+                .and_then(|char| shapes.get(&char))
+                .expect("must have a char that's mapped to a shape");
+
+            for (shape_pos, char) in Grid::from_string(shape, |_| true).objects {
+                massive_grid.insert(
+                    (point.x * 3 + shape_pos.x, point.y * 3 + shape_pos.y).into(),
+                    char,
+                );
+            }
+        }
+
+        let start = Vec2::origin();
+        let mut seen: AHashSet<Vec2> = Default::default();
+        let mut queue = VecDeque::new();
+        let mut empty_count = 1;
+
+        seen.insert(start);
+        queue.push_front(start);
+
+        while let Some(cur) = queue.pop_front() {
             for dir in directions {
-                let next = pos.move_dir(dir);
+                let next = cur.move_dir(dir);
 
-                // if the next position is out of bounds we just skip
-                if next.x < 0
-                    || next.x >= grid.width() as i64
+                if next.x >= (grid.width() as i64 * 3)
+                    || next.x < 0
+                    || next.y >= (grid.height() as i64 * 3)
                     || next.y < 0
-                    || next.y >= grid.height() as i64
                 {
                     continue;
                 }
-
-                if outside.contains(&next) {
+                if seen.contains(&next) {
                     continue;
                 }
 
-                // this means we're bumping into part of the loop, whether we can continue walking
-                // in this direction depends on the character we came from and the character we're going to
-                // We need to know which part of the loop we came from to figure out what side of the loop we'll be on next
-                let from = if seen.contains_key(&pos) {
-                    grid.get_object(&pos)
-                } else {
-                    None
-                };
-
-                let to = if seen.contains_key(&next) {
-                    grid.get_object(&next)
-                } else {
-                    None
-                };
-
-                match (from, to) {
-                    (None, Some(to)) => {
-                        let new_side = match (dir, to) {
-                            // if we're moving right you always end up on the left side of an object
-                            (Direction::Right, 'F') => Side::A,
-                            (Direction::Right, '|') => Side::A,
-                            (Direction::Right, 'L') => Side::A,
-
-                            (Direction::Left, '7') => Side::A,
-                            (Direction::Left, '|') => Side::B,
-                            (Direction::Left, 'J') => Side::A,
-
-                            (Direction::Up, 'L') => Side::A,
-                            (Direction::Up, '-') => Side::B,
-                            (Direction::Up, 'J') => Side::A,
-
-                            (Direction::Down, 'F') => Side::A,
-                            (Direction::Down, '-') => Side::A,
-                            (Direction::Down, '7') => Side::A,
-                            _ => panic!("going in direction {:#?} to a {:#?}", dir, to),
-                        };
-
-                        // We continue searching along this side of the loop
-                        buf.push_back((next, Some(new_side)));
+                match massive_grid.get(&next).unwrap_or(&'.') {
+                    '.' => {
+                        empty_count += 1;
+                        queue.push_front(next);
+                        seen.insert(next);
                     }
-
-                    // If we've moving from nothing to nothing we're part of outside
-                    (None, None) => {
-                        assert!(!seen.contains_key(&next));
-                        outside.insert(next);
-                        buf.push_back((next, None));
+                    '_' => {
+                        queue.push_front(next);
+                        seen.insert(next);
                     }
-
-                    // Figure out if we can exit the loop
-                    (Some(from), None) => {
-                        let legal = matches!(
-                            (dir, from, side.expect("we must have a side here")),
-                            (Direction::Left, '|', Side::A)
-                                | (Direction::Right, '|', Side::B)
-                                | (Direction::Up, '7', Side::A)
-                                | (Direction::Right, '7', Side::A)
-                                | (Direction::Right, 'J', Side::A)
-                                | (Direction::Down, '7', Side::A)
-                                | (Direction::Up, '-', Side::A)
-                                | (Direction::Down, '-', Side::B)
-                                | (Direction::Left, 'L', Side::A)
-                                | (Direction::Down, 'L', Side::A)
-                                | (Direction::Up, 'F', Side::A)
-                                | (Direction::Left, 'F', Side::A)
-                        );
-                        if legal {
-                            outside.insert(next);
-                            buf.push_back((next, None));
-                        }
-                        // figure out if we're on the correct side to exit the loop in this direction
+                    '#' => {
+                        // we can't go here
                     }
-                    (Some(from), Some(to)) => {
-                        // ???? use part 1 logic to figure out if we can keep walking (and update the side we're on)
-
-                        if !is_connected(from, to, dir) {
-                            continue;
-                        }
-
-                        let new_side = match (from, to, side.expect("there must be a side here")) {
-                            ('7', '|', side) => side.invert(),
-                            ('|', '7', side) => side.invert(),
-
-                            ('|', 'J', side) => side.invert(),
-                            ('J', '|', side) => side.invert(),
-
-                            ('-', 'J', side) => side.invert(),
-                            ('J', '-', side) => side.invert(),
-
-                            ('-', 'L', side) => side.invert(),
-                            ('L', '-', side) => side.invert(),
-
-                            ('F', 'J', side) => side.invert(),
-                            ('J', 'F', side) => side.invert(),
-
-                            ('L', '7', side) => side.invert(),
-                            ('7', 'L', side) => side.invert(),
-                            (_, _, side) => side,
-                        };
-
-                        if !seen_part2.contains(&next) {
-                            seen_part2.insert(next);
-                            buf.push_back((next, Some(new_side)));
-                        }
-                    }
+                    _ => unreachable!("value cannot exist in grid"),
                 }
             }
         }
 
-        self.submit_part2(grid.width() * grid.height() - outside.len() - seen.len());
+        assert_eq!(empty_count % 9, 0);
 
-        #[cfg(debug_assertions)]
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                let pos = Vec2 {
-                    x: x as i64,
-                    y: y as i64,
-                };
-                if outside.contains(&pos) {
-                    print!(".");
-                } else if seen.contains_key(&pos) {
-                    print!(
-                        "{}",
-                        match grid.get_object(&pos).expect("cannot be none here") {
-                            '-' => '─',
-                            '|' => '│',
-                            '7' => '┐',
-                            'F' => '┌',
-                            'L' => '└',
-                            'J' => '┘',
-                            c => c,
-                        }
-                    );
-                } else {
-                    print!("X");
-                }
-            }
+        self.submit_part2(grid.height() * grid.width() - loop_to_dist.len() - (empty_count / 9));
 
-            println!();
-        }
         Ok(())
     }
 }

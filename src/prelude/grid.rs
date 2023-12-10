@@ -104,11 +104,11 @@ impl Grid {
     }
 
     pub fn width(&self) -> usize {
-        return self.width;
+        self.width
     }
 
     pub fn height(&self) -> usize {
-        return self.height;
+        self.height
     }
 }
 

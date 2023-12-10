@@ -104,12 +104,12 @@ fn parse(str: &str) -> Vec<(Direction, u32)> {
 fn sim(instructions: &[(Direction, u32)]) -> HashSet<Vec2> {
     let mut cur = Vec2::origin();
     let mut points = HashSet::new();
-    points.insert(cur.clone());
+    points.insert(cur);
 
     for (dir, steps) in instructions {
         for _ in 0..(*steps) {
             cur = cur.move_dir(*dir);
-            points.insert(cur.clone());
+            points.insert(cur);
         }
     }
 

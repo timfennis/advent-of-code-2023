@@ -1,4 +1,4 @@
-use std::fmt::{write, Display, Formatter};
+use std::fmt::{Display, Formatter};
 
 #[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug, Hash, Copy)]
 pub struct Vec2 {
