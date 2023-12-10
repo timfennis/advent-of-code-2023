@@ -52,6 +52,39 @@ impl Solution for Day10 {
             }
         }
 
+        #[cfg(debug_assertions)]
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                let pos = Vec2 {
+                    x: x as i64,
+                    y: y as i64,
+                };
+                if loop_to_dist.contains_key(&pos) {
+                    match grid.get_object(&pos) {
+                        None => {}
+                        Some('F') => {
+                            print!("┌");
+                        }
+                        Some('L') => {
+                            print!("└");
+                        }
+                        Some('J') => {
+                            print!("┘");
+                        }
+                        Some('7') => {
+                            print!("┐");
+                        }
+                        Some(s) => {
+                            print!("{}", s);
+                        }
+                    }
+                } else {
+                    print!(".");
+                }
+            }
+            println!();
+        }
+
         self.submit_part1(loop_to_dist.values().max().unwrap());
 
         let mut massive_grid: AHashMap<Vec2, char> = AHashMap::default();
