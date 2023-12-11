@@ -61,6 +61,7 @@ impl Grid {
         }
     }
 
+    #[allow(dead_code)]
     pub fn neighbours4(&self, pos: impl Into<Vec2>) -> Vec<Vec2> {
         let Vec2 { x, y } = pos.into();
         debug_assert!(x < self.width as i64);

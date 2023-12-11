@@ -10,7 +10,7 @@ mod year2023;
 fn main() -> anyhow::Result<()> {
     let downloader = Downloader::from_env()?;
     // let mut day: year2023::Day11 = Default::default();
-    let mut day: year2019::Day5 = Default::default();
+    let mut day: year2019::Day9 = Default::default();
 
     execute(&mut day, &downloader)?;
 
@@ -44,11 +44,13 @@ pub mod test {
         execute(solution, &downloader).expect("solution returns OK");
         assert_eq!(
             solution.answer().part_1,
-            Some(format!("{}", expected_part_1))
+            Some(format!("{}", expected_part_1)),
+            "failed asserting that the answer for part 1 is correct",
         );
         assert_eq!(
             solution.answer().part_2,
-            Some(format!("{}", expected_part_2))
+            Some(format!("{}", expected_part_2)),
+            "failed asserting that the answer for part 2 is correct",
         );
     }
 }

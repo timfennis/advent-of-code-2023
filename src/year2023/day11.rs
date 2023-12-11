@@ -1,8 +1,10 @@
+use ahash::AHashSet;
+use itertools::Itertools;
+
 use crate::create_solution;
 use crate::prelude::{Grid, Vec2};
 use crate::puzzle::{Answerable, Solution};
-use ahash::{HashMap, HashSet};
-use itertools::Itertools;
+
 create_solution!(Day11, 2023, 11);
 
 impl Solution for Day11 {
@@ -29,7 +31,7 @@ impl Solution for Day11 {
 fn get_positions(input: &str, distance: i64) -> Vec<Vec2> {
     let grid = Grid::from_string(input, |c| c == '#');
 
-    let mut empty_columns: HashSet<usize> = grid.x_range().collect();
+    let mut empty_columns: AHashSet<usize> = grid.x_range().collect();
 
     for col in grid.x_range() {
         for row in grid.y_range() {
