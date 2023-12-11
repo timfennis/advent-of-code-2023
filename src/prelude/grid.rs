@@ -1,4 +1,5 @@
 use crate::prelude::Vec2;
+use std::ops::Range;
 
 type GridObject = (Vec2, char);
 
@@ -102,6 +103,13 @@ impl Grid {
             .map(|(_, c)| c)
             .copied()
     }
+    pub fn object_at(&self, x: i64, y: i64) -> Option<char> {
+        self.objects
+            .iter()
+            .find(|(op, _c)| op.x == x && op.y == y)
+            .map(|(_, c)| c)
+            .copied()
+    }
 
     pub fn width(&self) -> usize {
         self.width
@@ -109,6 +117,13 @@ impl Grid {
 
     pub fn height(&self) -> usize {
         self.height
+    }
+
+    pub fn x_range(&self) -> Range<usize> {
+        0..self.width
+    }
+    pub fn y_range(&self) -> Range<usize> {
+        0..self.height
     }
 }
 

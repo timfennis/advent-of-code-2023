@@ -2,6 +2,7 @@
 
 pub use day1::*;
 pub use day10::*;
+pub use day11::*;
 pub use day2::*;
 pub use day3::*;
 pub use day4::*;
@@ -13,6 +14,7 @@ pub use day9::*;
 
 mod day1;
 mod day10;
+mod day11;
 mod day2;
 mod day3;
 mod day4;
@@ -72,5 +74,10 @@ mod test {
     #[test]
     pub fn year_2023_day_10() {
         check(&mut year2023::Day10::default(), 6897, 367);
+    }
+
+    #[test]
+    pub fn year_2023_day_11() {
+        check(&mut year2023::Day11::default(), 9918828, 692506533832u64);
     }
 }

@@ -74,12 +74,18 @@ impl Solution for Day10 {
                         Some('7') => {
                             print!("┐");
                         }
+                        Some('|') => {
+                            print!("│")
+                        }
+                        Some('-') => {
+                            print!("─");
+                        }
                         Some(s) => {
                             print!("{}", s);
                         }
                     }
                 } else {
-                    print!(".");
+                    print!(" ");
                 }
             }
             println!();
