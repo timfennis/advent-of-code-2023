@@ -1,26 +1,30 @@
 #[derive(Debug)]
 pub struct IntCodeComputer {
     mem: Vec<i64>,
+    rel: usize,
     pc: usize,
     halted: bool,
 }
+
+type Program = Vec<i64>;
 
 impl IntCodeComputer {
     pub fn halted(&self) -> bool {
         self.halted
     }
     pub fn read(&self, addr: usize) -> i64 {
-        self.mem[addr]
-    }
-
-    pub fn deref_val(&self, addr: usize) -> i64 {
-        let addr = self.read(addr);
-        // assert!(addr > 0, format!("addr must be positive was {}", addr));
-        self.read(addr as usize)
+        if let Some(&val) = self.mem.get(addr) {
+            val
+        } else {
+            0
+        }
     }
 
     pub fn write(&mut self, addr: usize, val: i64) {
-        assert!(addr < self.mem.len());
+        // for now just resize our memory to fit the value
+        if addr >= self.mem.len() {
+            self.mem.resize(addr + 1, 0);
+        }
         self.mem[addr] = val;
     }
 
@@ -54,7 +58,7 @@ impl IntCodeComputer {
         let mut out = Vec::new();
 
         while !self.halted {
-            let output = if self.mem[self.pc] == 3 {
+            let output = if self.mem[self.pc] % 100 == 3 {
                 self.step(input.next())
             } else {
                 self.step(None)
@@ -66,32 +70,42 @@ impl IntCodeComputer {
         }
         out
     }
-    fn step(&mut self, input: Option<i64>) -> Option<i64> {
-        let instruction = self.mem[self.pc];
 
+    /// Returns a tuple of the RAW value of the parameter and the mode it's in
+    fn param(&self, position: usize) -> (i64, i64) {
+        let instruction = self.mem[self.pc];
         let p_modes = [
             instruction / 100 % 10,
             instruction / 1000 % 10,
             instruction / 10000 % 10,
         ];
 
+        (self.read(self.pc + position), p_modes[position - 1])
+    }
+
+    fn param_addr(&self, position: usize) -> usize {
+        match self.param(position) {
+            (addr, 0) => addr as usize,
+            // in immediate mode to get the address of a parameter we just return the program counter + the offset
+            (_, 1) => self.pc + position,
+            // in relative mode we need to add the param value to the rel register
+            (offset, 2) => ((self.rel as i64) + offset) as usize,
+            _ => unreachable!("invalid parameter mode"),
+        }
+    }
+    fn param_value(&self, position: usize) -> i64 {
+        self.read(self.param_addr(position))
+    }
+    fn step(&mut self, input: Option<i64>) -> Option<i64> {
+        let instruction = self.mem[self.pc];
+
         match instruction % 100 {
             // 3 parameter instructions
             op @ 1 | op @ 2 | op @ 7 | op @ 8 => {
-                assert!(p_modes[0] < 2 && p_modes[1] < 2 && p_modes[2] == 0);
+                let p1 = self.param_value(1);
+                let p2 = self.param_value(2);
 
-                let p1 = if p_modes[0] == 0 {
-                    self.deref_val(self.pc + 1)
-                } else {
-                    self.read(self.pc + 1)
-                };
-                let p2 = if p_modes[1] == 0 {
-                    self.deref_val(self.pc + 2)
-                } else {
-                    self.read(self.pc + 2)
-                };
-
-                let p3 = self.read(self.pc + 3) as usize;
+                let p3 = self.param_addr(3);
 
                 match op {
                     // addition
@@ -109,41 +123,25 @@ impl IntCodeComputer {
             }
             // read from input
             3 => {
-                // println!("READ");
                 self.write(
-                    self.read(self.pc + 1) as usize,
+                    self.param_addr(1),
                     input.expect("must have an input to run this instruction"),
                 );
                 self.pc += 2;
             }
             // write to output
             4 => {
-                let p1_mode = instruction / 100 % 10;
-                assert!(p1_mode < 2);
-
                 // figure out the value of p1 my checking the mode
-                let p1 = if p1_mode == 0 {
-                    self.deref_val(self.pc + 1)
-                } else {
-                    self.read(self.pc + 1)
-                };
+                let p1 = self.param_value(1);
 
                 self.pc += 2;
                 return Some(p1);
             }
             // 2 parameter jump instructions
             op @ 5 | op @ 6 => {
-                let p1 = if p_modes[0] == 0 {
-                    self.deref_val(self.pc + 1)
-                } else {
-                    self.read(self.pc + 1)
-                };
+                let p1 = self.param_value(1);
 
-                let p2 = if p_modes[1] == 0 {
-                    self.deref_val(self.pc + 2)
-                } else {
-                    self.read(self.pc + 2)
-                } as usize;
+                let p2 = self.param_value(2) as usize;
 
                 if op == 5 && p1 != 0 || op == 6 && p1 == 0 {
                     assert!(p2 < self.mem.len());
@@ -151,6 +149,12 @@ impl IntCodeComputer {
                 } else {
                     self.pc += 3;
                 }
+            }
+            // adjust the relative base
+            9 => {
+                let p1 = self.param_value(1);
+                self.rel = (self.rel as i64 + p1) as usize;
+                self.pc += 2;
             }
 
             99 => self.halted = true,
@@ -166,6 +170,7 @@ impl From<&[i64]> for IntCodeComputer {
         Self {
             mem: value.to_vec(),
             pc: 0,
+            rel: 0,
             halted: false,
         }
     }
@@ -175,6 +180,7 @@ impl From<&Vec<i64>> for IntCodeComputer {
         Self {
             mem: value.clone(),
             pc: 0,
+            rel: 0,
             halted: false,
         }
     }
@@ -184,6 +190,7 @@ impl From<Vec<i64>> for IntCodeComputer {
         Self {
             mem: value,
             pc: 0,
+            rel: 0,
             halted: false,
         }
     }
@@ -191,7 +198,7 @@ impl From<Vec<i64>> for IntCodeComputer {
 
 #[cfg(test)]
 mod test {
-    use crate::year2019::intcode::IntCodeComputer;
+    use crate::year2019::intcode::{IntCodeComputer, Program};
 
     macro_rules! assert_program_output {
         ($program:expr, $input:expr, $output:expr) => {
@@ -241,5 +248,13 @@ mod test {
                 }
             );
         }
+    }
+
+    #[test]
+    pub fn day9_part_1_test_program() {
+        let program: Program = vec![
+            109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+        ];
+        assert_program_output!(program.clone(), vec![], program);
     }
 }
