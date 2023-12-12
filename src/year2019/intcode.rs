@@ -6,6 +6,7 @@ pub struct IntCodeComputer {
     halted: bool,
 }
 
+#[allow(dead_code)]
 type Program = Vec<i64>;
 
 impl IntCodeComputer {
