@@ -5,10 +5,10 @@ use itertools::Itertools;
 use std::collections::VecDeque;
 use std::ops::Not;
 use std::time::Instant;
-// use crate::year2023::day12::ValidationResult::Valid;
+use cached::proc_macro::cached;
 create_solution!(Day12, 2023, 12);
 
-#[derive(Eq, PartialEq, Debug, Clone, Copy)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy, Hash)]
 enum State {
     Good,
     Bad,
@@ -22,6 +22,8 @@ impl Solution for Day12 {
 
         let sum = run(input, 4);
         self.submit_part2(sum);
+
+        assert_ne!(sum, 4310203286787);
 
         Ok(())
     }
@@ -61,10 +63,9 @@ fn run(input: &str, expand: usize) -> usize {
             .collect_vec();
 
         let start = Instant::now();
-        let t = solve_dfs(states, &new_nums);
+        let t = solve_dfs_recursive(&states, None, &new_nums);
         let duration = start.elapsed();
         sum += t;
-        println!("END :: [{line_nr}] {line} :: {t} in {:#?}\n", duration);
     }
 
     sum
@@ -192,55 +193,86 @@ fn is_valid(rec: &[State], nums: &[usize]) -> bool {
     vals == nums
 }
 
-fn solve_dfs(rec: Vec<State>, nums: &[usize]) -> usize {
-    let mut counter = 0;
-    let mut queue = Vec::new();
-    queue.push(rec);
 
-    let mut ans = 0;
-    'main: while let Some(rec) = queue.pop() {
-        counter += 1;
-        // if counter % 1000000 == 0 {
-        //     println!("{} {}", to_string(&rec), nums.iter().join(","));
-        // }
-        for (idx, state) in rec.iter().enumerate() {
-            if *state == State::Unknown {
-                let mut new_bad = rec.to_vec();
-                new_bad[idx] = State::Bad;
-
-                match could_be_valid(&new_bad, &nums) {
-                    ValidationResult::Invalid => {
-                        // NON
-                    }
-                    ValidationResult::KeepSearching => {
-                        queue.push(new_bad);
-                    }
-                }
-
-                let mut new_good = rec.to_vec();
-                new_good[idx] = State::Good;
-
-                match could_be_valid(&new_good, &nums) {
-                    ValidationResult::Invalid => {
-                        // NON
-                    }
-                    ValidationResult::KeepSearching => {
-                        queue.push(new_good);
-                    }
-                }
-
-                continue 'main;
+fn key(rec: &[State], current_group_size: Option<usize>, nums: &[usize]) -> String {
+    format!("{:?}{:?}{:?}", rec, current_group_size, nums)
+}
+#[cached(
+    key = "String",
+    convert = "{key(rec, current_group_size, nums)}"
+)]
+fn solve_dfs_recursive(rec: &[State], current_group_size: Option<usize>, nums: &[usize]) -> usize {
+    if rec.is_empty() {
+        return if let Some(size) = current_group_size {
+            if nums.len() == 1 && size == nums[0] {
+                1
+            } else {
+                0
             }
-        }
-
-        // Everything is known
-
-        if is_valid(&rec, &nums) {
-            ans += 1;
-        }
+        } else {
+            if nums.is_empty() {
+                1
+            } else {
+                0
+            }
+        };
     }
 
-    ans
+
+    let head = rec[0];
+    let tail = &rec[1..];
+
+    match (head, current_group_size) {
+        (State::Good, None) => {
+            // If we encounter a . and we're not in a group we can just continue walking
+            solve_dfs_recursive(tail, None, nums)
+        }
+        (State::Good, Some(size)) => {
+            // If we encounter a . and we're in a group we must end the group
+            if !nums.is_empty() && size != nums[0] {
+                return 0;
+            }
+
+            if nums.is_empty() {
+                return 0;
+            }
+
+
+            solve_dfs_recursive(tail, None, &nums[1..])
+        }
+        (State::Bad, None) => {
+            // If we encounter bad and we're not in a group can enter group 0
+            solve_dfs_recursive(tail, Some(1), nums)
+        }
+        (State::Bad, Some(size)) => {
+            // If we encounter bad and we're in a group we continue the same group
+            if nums.is_empty() || size > nums[0] {
+                return 0;
+            }
+            solve_dfs_recursive(tail, Some(size + 1), nums)
+        }
+        (State::Unknown, None) => {
+            let bad = solve_dfs_recursive(tail, Some(1), nums);
+            let good = solve_dfs_recursive(tail, None, nums);
+
+            bad + good
+        }
+        (State::Unknown, Some(size)) => {
+            if nums.is_empty() {
+                return 0;
+            }
+
+            let bad = solve_dfs_recursive(tail, Some(size + 1), nums);
+
+            let good = if size == nums[0] {
+                solve_dfs_recursive(tail, None, &nums[1..])
+            } else {
+                0
+            };
+
+            bad + good
+        }
+    }
 }
 
 fn to_string(rec: &[State]) -> String {
