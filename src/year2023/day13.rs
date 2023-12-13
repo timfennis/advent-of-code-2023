@@ -25,32 +25,29 @@ fn solve_puzzle(input: &str) -> (i64, i64) {
     for pattern in input.split("\n\n") {
         let grid = Grid::from_string(pattern, |c| c == '#');
 
-        println!("{pattern}");
-
         let flips = find_flip(&grid);
         assert_eq!(flips.len(), 1);
-        dbg!(&flips);
         let p1_flip = flips
             .first()
             .expect("guaranteed to have at least 1 flip here");
         let part_1_ans = match p1_flip {
             (Some(x), None) => *x + 1,
             (None, Some(y)) => 100 * (*y + 1),
-            _ => unreachable!("right!?"),
+            _ => unreachable!("there must be only 1 mirror possible"),
         };
 
         part_1 += part_1_ans;
 
-        println!("=====part2======");
         let new_grid = correct_smudge(&grid);
 
         let new_flips = find_flip(&new_grid);
-        dbg!(&new_flips);
         let excl_new_flips = new_flips
             .iter()
             .filter(|new_flip| *new_flip != p1_flip)
             .collect_vec();
+
         assert_eq!(excl_new_flips.len(), 1);
+
         let flip = **excl_new_flips
             .first()
             .expect("guaranteed to have at least 1 flip here");
@@ -61,9 +58,8 @@ fn solve_puzzle(input: &str) -> (i64, i64) {
             (None, Some(y)) => {
                 part_2 += 100 * (y + 1);
             }
-            _ => unreachable!("right!?"),
+            _ => unreachable!("there must be only 1 mirror possible"),
         }
-        println!();
     }
 
     (part_1, part_2)
@@ -107,7 +103,6 @@ fn correct_smudge(grid: &Grid) -> Grid {
             smudge = diff.iter().next().copied();
         }
     }
-    // println!("--y--\n");
 
     for mirror_y in 0..(grid.height() - 1) as i64 {
         // find all objects that would be flipped along y
