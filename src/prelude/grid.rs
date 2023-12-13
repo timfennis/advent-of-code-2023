@@ -1,4 +1,5 @@
 use crate::prelude::Vec2;
+use std::fmt::{Display, Formatter, Write};
 use std::ops::Range;
 use std::slice::Iter;
 
@@ -142,6 +143,23 @@ impl Grid {
 
     pub fn add(&mut self, obj: GridObject) {
         self.objects.push(obj);
+    }
+}
+
+impl Display for Grid {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                if let Some(ch) = self.object_at(x as i64, y as i64) {
+                    f.write_char(ch)?
+                } else {
+                    f.write_char('.')?
+                }
+            }
+            f.write_char('\n')?
+        }
+
+        Ok(())
     }
 }
 
