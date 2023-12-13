@@ -1,11 +1,11 @@
 use crate::create_solution;
 use crate::prelude::StringTools;
 use crate::puzzle::{Answerable, Solution};
+use cached::proc_macro::cached;
 use itertools::Itertools;
 use std::collections::VecDeque;
 use std::ops::Not;
 use std::time::Instant;
-use cached::proc_macro::cached;
 create_solution!(Day12, 2023, 12);
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy, Hash)]
@@ -29,11 +29,10 @@ impl Solution for Day12 {
     }
 }
 
-
 fn run(input: &str, expand: usize) -> usize {
     let mut sum = 0;
 
-    for (line_nr, line) in input.lines().enumerate() {
+    for (_line_nr, line) in input.lines().enumerate() {
         let (rec, nums) = line.split_once(' ').unwrap();
         let nums = nums.nums::<usize>().collect_vec();
 
@@ -64,143 +63,17 @@ fn run(input: &str, expand: usize) -> usize {
 
         let start = Instant::now();
         let t = solve_dfs_recursive(&states, None, &new_nums);
-        let duration = start.elapsed();
+        let _duration = start.elapsed();
         sum += t;
     }
 
     sum
 }
 
-enum ValidationResult {
-    Invalid,
-    KeepSearching,
-}
-
-fn could_be_valid(rec: &[State], nums: &[usize]) -> ValidationResult {
-    let num_of_bad = rec.iter().filter(|s| **s == State::Bad).count();
-    let num_of_unknown = rec.iter().filter(|s| **s == State::Unknown).count();
-    // let num_of_good = rec.iter().filter(|s| **s == State::Good).count();
-    let total_bad = nums.iter().sum::<usize>();
-
-    if num_of_bad > total_bad || num_of_bad + num_of_unknown < total_bad {
-        return ValidationResult::Invalid;
-    }
-
-    // if num_of_bad == total_bad && num_of_unknown > 0 {
-    //     // all unknowns must be good
-    //
-    //     // println!("all unknowns must be good: {}", num_of_unknown);
-    //     // return ValidationResult::Valid(num_of_unknown);
-    //     // return ValidationResult::KeepSearching;
-    //     // return ValidationResult::Valid(1);
-    //     return ValidationResult::KeepSearching;
-    // }
-
-    let mut nums = nums.into_iter();
-    let mut streak = 0;
-    let mut target_streak = *nums.next().unwrap();
-
-    for start in 0..rec.len() {
-        match rec[start] {
-            State::Bad => {
-                streak += 1;
-
-                // If we produced a string that contains a streak that's too high we return false
-                if streak > target_streak {
-                    return ValidationResult::Invalid;
-                }
-            }
-            State::Good => {
-                // If we were on a streak, and that streak exactly matches the streak we were looking for
-                if streak > 0 && streak == target_streak {
-                    // if we still have streaks to find we can just continue
-                    if let Some(n) = nums.next() {
-                        target_streak = *n;
-                    } else {
-                        // If there are no more streaks wanted we do this
-                        return if rec[start + 1..].iter().all(|s| *s != State::Bad) {
-                            ValidationResult::KeepSearching
-                        } else {
-                            ValidationResult::Invalid
-                        };
-                    }
-
-                    streak = 0;
-                } else if streak > 0 && streak > target_streak {
-                    panic!("error streak is too high");
-                } else if streak == 0 {
-                    // we're not on a streak so we just continue happily
-                    // do nothing
-                } else if streak > 0 && streak < target_streak {
-                    // println!("STREAK INTERRUPTED: ABORT INVALID");
-                    return ValidationResult::Invalid;
-                } else {
-                    panic!("this doesn't happen right?");
-                }
-            }
-            State::Unknown => {
-                if streak > 0 && streak < target_streak {
-                    // must be #
-                    streak += 1;
-                } else if streak > 0 && streak == target_streak {
-                    // must be .
-                    streak = 0;
-                    if let Some(n) = nums.next() {
-                        target_streak = *n;
-                    } else {
-                        return if rec[start + 1..].iter().all(|s| *s != State::Bad) {
-                            ValidationResult::KeepSearching
-                        } else {
-                            ValidationResult::Invalid
-                        };
-                    }
-                } else {
-                    assert_eq!(streak, 0);
-                    // TODO this pruning might be a source of bugs
-                    let nums = nums.collect_vec();
-                    let needed = nums.iter().map(|n| **n + 1).sum::<usize>() + target_streak;
-                    let remaining = rec.len() - start;
-
-                    if needed > remaining {
-                        return ValidationResult::Invalid;
-                    }
-
-                    // let rem = rec[start..].iter().group_by(|s| **s == State::Good).into_iter().filter_map(|(s, a)| s.not().then_some(a.count())).collect_vec();
-                    //
-                    // if nums.iter().any(|n| *n > rem.iter().max().unwrap()) {
-                    //     return ValidationResult::Invalid;
-                    // }
-                    return ValidationResult::KeepSearching;
-                }
-            }
-        }
-    }
-
-    if streak == 0 || streak == target_streak {
-        return if nums.next().is_none() {
-            // must be valid HERE right?
-            ValidationResult::KeepSearching
-        } else {
-            ValidationResult::Invalid
-        };
-    } else {
-        ValidationResult::Invalid
-    }
-}
-
-fn is_valid(rec: &[State], nums: &[usize]) -> bool {
-    let vals = rec.iter().group_by(|s| **s).into_iter().filter_map(|(a, b)| (a == State::Bad).then_some(b.count())).collect_vec();
-    vals == nums
-}
-
-
 fn key(rec: &[State], current_group_size: Option<usize>, nums: &[usize]) -> String {
     format!("{:?}{:?}{:?}", rec, current_group_size, nums)
 }
-#[cached(
-    key = "String",
-    convert = "{key(rec, current_group_size, nums)}"
-)]
+#[cached(key = "String", convert = "{key(rec, current_group_size, nums)}")]
 fn solve_dfs_recursive(rec: &[State], current_group_size: Option<usize>, nums: &[usize]) -> usize {
     if rec.is_empty() {
         return if let Some(size) = current_group_size {
@@ -209,15 +82,12 @@ fn solve_dfs_recursive(rec: &[State], current_group_size: Option<usize>, nums: &
             } else {
                 0
             }
+        } else if nums.is_empty() {
+            1
         } else {
-            if nums.is_empty() {
-                1
-            } else {
-                0
-            }
+            0
         };
     }
-
 
     let head = rec[0];
     let tail = &rec[1..];
@@ -236,7 +106,6 @@ fn solve_dfs_recursive(rec: &[State], current_group_size: Option<usize>, nums: &
             if nums.is_empty() {
                 return 0;
             }
-
 
             solve_dfs_recursive(tail, None, &nums[1..])
         }
@@ -275,6 +144,7 @@ fn solve_dfs_recursive(rec: &[State], current_group_size: Option<usize>, nums: &
     }
 }
 
+#[allow(dead_code)]
 fn to_string(rec: &[State]) -> String {
     let mut buf = String::with_capacity(rec.len());
     for s in rec {
@@ -290,8 +160,8 @@ fn to_string(rec: &[State]) -> String {
 #[cfg(test)]
 mod test {
     use crate::puzzle::Solution;
-    use crate::year2023::Day12;
     use crate::year2023::day12::run;
+    use crate::year2023::Day12;
 
     #[test]
     fn example_part_1() {
