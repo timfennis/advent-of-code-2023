@@ -8,6 +8,9 @@ pub struct Vec2 {
 
 #[allow(dead_code)]
 impl Vec2 {
+    pub fn from(x: i64, y: i64) -> Self {
+        Self { x, y }
+    }
     pub fn origin() -> Self {
         Self { x: 0, y: 0 }
     }
@@ -36,6 +39,28 @@ impl Vec2 {
                 y: self.y - 1,
             },
         }
+    }
+
+    pub fn mirror_between_x(&self, (x1, x2): (i64, i64)) -> Self {
+        Self {
+            x: (x1 + x2) - self.x,
+            y: self.y,
+        }
+    }
+    pub fn mirror_between_y(&self, (y1, y2): (i64, i64)) -> Self {
+        Self {
+            y: (y1 + y2) - self.y,
+            x: self.x,
+        }
+    }
+    /// Mirror over an imaginary axis that sits at the end of the value of x_axis
+    pub fn mirror_x(&self, x_axis: i64) -> Self {
+        self.mirror_between_x((x_axis, x_axis))
+    }
+
+    /// Mirror over an imaginary axis that sits at the end of the value of y_axis
+    pub fn mirror_y(&self, y_axis: i64) -> Self {
+        self.mirror_between_x((y_axis, y_axis))
     }
 }
 
@@ -99,5 +124,16 @@ mod tests {
     fn move_dir() {
         let o = Vec2::origin();
         assert_eq!(o.move_dir(Direction::Down), Vec2 { x: 0, y: 1 });
+    }
+
+    #[test]
+    fn mirror() {
+        assert_eq!(Vec2::from(4, 10), Vec2::from(5, 10).mirror_x(4));
+        assert_eq!(Vec2::from(3, 10), Vec2::from(6, 10).mirror_x(4));
+        assert_eq!(Vec2::from(2, 10), Vec2::from(7, 10).mirror_x(4));
+
+        assert_eq!(Vec2::from(4, 10).mirror_x(4), Vec2::from(5, 10));
+        assert_eq!(Vec2::from(3, 10).mirror_x(4), Vec2::from(6, 10));
+        assert_eq!(Vec2::from(2, 10).mirror_x(4), Vec2::from(7, 10));
     }
 }

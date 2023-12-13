@@ -6,13 +6,8 @@ use itertools::Itertools;
 create_solution!(Day13, 2023, 13);
 impl Solution for Day13 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
-        // assert_ne!(ans, 40372);
-        // assert_ne!(ans, 51300);
-        // assert_ne!(ans, 61900);
-        // assert_ne!(ans, 27646);
-        //
-
         let (part_1, part_2) = solve_puzzle(input);
+
         assert_eq!(part_1, 28651);
         self.submit_part1(part_1);
 
@@ -76,21 +71,13 @@ fn solve_puzzle(input: &str) -> (i64, i64) {
 
 fn correct_smudge(grid: &Grid) -> Grid {
     let mut smudge = None;
+
     for mirror_x in 0..(grid.width() - 1) as i64 {
         // find all objects that would be flipped along x
         let new_objects = grid
-            .objects
-            .iter()
-            .filter_map(|(object, _)| {
-                if object.x > mirror_x {
-                    Some(Vec2 {
-                        x: mirror_x - (object.x - mirror_x - 1),
-                        y: object.y,
-                    })
-                } else {
-                    None
-                }
-            })
+            .iter_objects()
+            .filter(|(object, _)| object.x > mirror_x)
+            .map(|(object, _)| object.mirror_between_x((mirror_x, mirror_x + 1)))
             .filter(|obj| obj.x >= 0 && obj.y >= 0)
             .collect::<HashSet<_>>();
 
@@ -108,8 +95,7 @@ fn correct_smudge(grid: &Grid) -> Grid {
             .collect::<HashSet<Vec2>>();
 
         let diff_b = grid
-            .objects
-            .iter()
+            .iter_objects()
             .filter(|(o, _)| new_xs.contains(&o.x) && !new_objects.contains(o))
             .map(|(o, _)| *o)
             .collect::<HashSet<Vec2>>();
@@ -126,18 +112,9 @@ fn correct_smudge(grid: &Grid) -> Grid {
     for mirror_y in 0..(grid.height() - 1) as i64 {
         // find all objects that would be flipped along y
         let new_objects = grid
-            .objects
-            .iter()
-            .filter_map(|(object, _)| {
-                if object.y > mirror_y {
-                    Some(Vec2 {
-                        x: object.x,
-                        y: mirror_y - (object.y - mirror_y - 1),
-                    })
-                } else {
-                    None
-                }
-            })
+            .iter_objects()
+            .filter(|(object, _)| object.y > mirror_y)
+            .map(|(object, _)| object.mirror_between_y((mirror_y, mirror_y + 1)))
             .filter(|obj| obj.x >= 0 && obj.y >= 0)
             .collect_vec();
 
@@ -155,8 +132,7 @@ fn correct_smudge(grid: &Grid) -> Grid {
             .collect::<HashSet<Vec2>>();
 
         let diff_b = grid
-            .objects
-            .iter()
+            .iter_objects()
             .filter(|(o, _)| new_ys.contains(&o.y) && !new_objects.contains(o))
             .map(|(o, _)| *o)
             .collect::<HashSet<Vec2>>();
@@ -170,14 +146,15 @@ fn correct_smudge(grid: &Grid) -> Grid {
     }
 
     let smudge = smudge.expect("must have 1 smudge");
-    println!("SMUDGE: {}", smudge);
     let mut grid = grid.clone();
 
-    if let Some(pos) = grid.objects.iter().position(|o| *o == (smudge, '#')) {
-        grid.objects.remove(pos);
+    // If it already contains the smudge we remove it, otherwise we add it
+    if grid.contains((smudge, '#')) {
+        grid.remove((smudge, '#'));
     } else {
-        grid.objects.push((smudge, '#'));
+        grid.add((smudge, '#'));
     }
+
     grid
 }
 
@@ -187,8 +164,7 @@ fn find_flip(grid: &Grid) -> Vec<(Option<i64>, Option<i64>)> {
     for mirror_x in 0..(grid.width() - 1) as i64 {
         // find all objects that would be flipped along x
         let new_objects = grid
-            .objects
-            .iter()
+            .iter_objects()
             .filter_map(|(object, _)| {
                 if object.x > mirror_x {
                     Some(Vec2 {
@@ -216,8 +192,7 @@ fn find_flip(grid: &Grid) -> Vec<(Option<i64>, Option<i64>)> {
             .collect::<HashSet<Vec2>>();
 
         let diff_b = grid
-            .objects
-            .iter()
+            .iter_objects()
             .filter(|(o, _)| new_xs.contains(&o.x) && !new_objects.contains(o))
             .map(|(o, _)| *o)
             .collect::<HashSet<Vec2>>();
@@ -232,8 +207,7 @@ fn find_flip(grid: &Grid) -> Vec<(Option<i64>, Option<i64>)> {
     for mirror_y in 0..(grid.height() - 1) as i64 {
         // find all objects that would be flipped along y
         let new_objects = grid
-            .objects
-            .iter()
+            .iter_objects()
             .filter_map(|(object, _)| {
                 if object.y > mirror_y {
                     Some(Vec2 {
@@ -262,8 +236,7 @@ fn find_flip(grid: &Grid) -> Vec<(Option<i64>, Option<i64>)> {
             .collect::<HashSet<Vec2>>();
 
         let diff_b = grid
-            .objects
-            .iter()
+            .iter_objects()
             .filter(|(o, _)| new_ys.contains(&o.y) && !new_objects.contains(o))
             .map(|(o, _)| *o)
             .collect::<HashSet<Vec2>>();

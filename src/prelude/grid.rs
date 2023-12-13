@@ -1,5 +1,6 @@
 use crate::prelude::Vec2;
 use std::ops::Range;
+use std::slice::Iter;
 
 type GridObject = (Vec2, char);
 
@@ -8,7 +9,7 @@ type GridObject = (Vec2, char);
 pub struct Grid {
     width: usize,
     height: usize,
-    pub objects: Vec<GridObject>,
+    objects: Vec<GridObject>,
 }
 
 impl IntoIterator for Grid {
@@ -125,6 +126,22 @@ impl Grid {
     }
     pub fn y_range(&self) -> Range<usize> {
         0..self.height
+    }
+
+    pub fn iter_objects(&self) -> Iter<'_, GridObject> {
+        self.objects.iter()
+    }
+
+    pub fn contains(&self, obj: GridObject) -> bool {
+        self.objects.iter().any(|o| *o == obj)
+    }
+
+    pub fn remove(&mut self, obj: GridObject) {
+        self.objects.retain(|o| *o != obj);
+    }
+
+    pub fn add(&mut self, obj: GridObject) {
+        self.objects.push(obj);
     }
 }
 

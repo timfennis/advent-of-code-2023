@@ -111,10 +111,10 @@ impl Solution for Day10 {
                 .and_then(|char| shapes.get(&char))
                 .expect("must have a char that's mapped to a shape");
 
-            for (shape_pos, char) in Grid::from_string(shape, |_| true).objects {
+            for (shape_pos, char) in Grid::from_string(shape, |_| true).iter_objects() {
                 massive_grid.insert(
                     (point.x * 3 + shape_pos.x, point.y * 3 + shape_pos.y).into(),
-                    char,
+                    *char,
                 );
             }
         }

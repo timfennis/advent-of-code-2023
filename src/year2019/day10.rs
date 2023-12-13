@@ -18,8 +18,8 @@ impl Solution for Day10 {
         let grid = Grid::from_string(input, |c| c == '#');
 
         let mut result: AHashMap<Vec2, usize> = Default::default();
-        for (from, _) in grid.objects.iter() {
-            for (to, _) in grid.objects.iter() {
+        for (from, _) in grid.iter_objects() {
+            for (to, _) in grid.iter_objects() {
                 if from == to {
                     continue;
                 }
