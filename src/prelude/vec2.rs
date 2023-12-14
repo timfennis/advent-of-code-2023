@@ -2,8 +2,8 @@ use std::fmt::{Display, Formatter};
 
 #[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug, Hash, Copy)]
 pub struct Vec2 {
-    pub y: i64,
     pub x: i64,
+    pub y: i64,
 }
 
 #[allow(dead_code)]
@@ -94,7 +94,7 @@ impl From<(usize, usize)> for Vec2 {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Direction {
     Right,
     Down,

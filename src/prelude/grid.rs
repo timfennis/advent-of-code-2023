@@ -8,9 +8,9 @@ type GridObject = (Vec2, char);
 //TODO: no clone
 #[derive(Clone)]
 pub struct Grid {
-    width: usize,
-    height: usize,
-    objects: Vec<GridObject>,
+    pub width: usize,
+    pub height: usize,
+    pub objects: Vec<GridObject>,
 }
 
 impl IntoIterator for Grid {
@@ -22,6 +22,7 @@ impl IntoIterator for Grid {
     }
 }
 
+#[allow(dead_code)]
 impl Grid {
     #[allow(dead_code)]
     pub fn from_dimension(width: usize, height: usize) -> Self {
@@ -31,6 +32,7 @@ impl Grid {
             objects: Default::default(),
         }
     }
+
     pub fn from_string(input: &str, predicate: fn(char) -> bool) -> Self {
         let width = input
             .lines()
@@ -63,6 +65,13 @@ impl Grid {
         }
     }
 
+    /// Returns whether a given point is within the bounds of this grid
+    pub fn in_bound(&self, point: Vec2) -> bool {
+        point.y < 0
+            || point.x < 0
+            || point.x >= self.width() as i64
+            || point.y >= self.height() as i64
+    }
     #[allow(dead_code)]
     pub fn neighbours4(&self, pos: impl Into<Vec2>) -> Vec<Vec2> {
         let Vec2 { x, y } = pos.into();
