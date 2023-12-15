@@ -128,12 +128,30 @@ mod tests {
 
     #[test]
     fn mirror() {
-        assert_eq!(Vec2::from(4, 10), Vec2::from(5, 10).mirror_x(4));
-        assert_eq!(Vec2::from(3, 10), Vec2::from(6, 10).mirror_x(4));
-        assert_eq!(Vec2::from(2, 10), Vec2::from(7, 10).mirror_x(4));
+        assert_eq!(
+            Vec2::from(4, 10),
+            Vec2::from(5, 10).mirror_between_x((4, 5))
+        );
+        assert_eq!(
+            Vec2::from(3, 10),
+            Vec2::from(6, 10).mirror_between_x((4, 5))
+        );
+        assert_eq!(
+            Vec2::from(2, 10),
+            Vec2::from(7, 10).mirror_between_x((4, 5))
+        );
 
-        assert_eq!(Vec2::from(4, 10).mirror_x(4), Vec2::from(5, 10));
-        assert_eq!(Vec2::from(3, 10).mirror_x(4), Vec2::from(6, 10));
-        assert_eq!(Vec2::from(2, 10).mirror_x(4), Vec2::from(7, 10));
+        assert_eq!(
+            Vec2::from(4, 10).mirror_between_x((4, 5)),
+            Vec2::from(5, 10)
+        );
+        assert_eq!(
+            Vec2::from(3, 10).mirror_between_x((4, 5)),
+            Vec2::from(6, 10)
+        );
+        assert_eq!(
+            Vec2::from(2, 10).mirror_between_x((4, 5)),
+            Vec2::from(7, 10)
+        );
     }
 }
