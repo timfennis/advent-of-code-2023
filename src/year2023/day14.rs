@@ -93,7 +93,7 @@ fn tilt(grid: &Grid, direction: Direction) -> Grid {
         loop {
             let new = best.move_dir(direction);
 
-            if walls.contains(&new) || new_objects.contains(&(new, 'O')) || grid.in_bound(new) {
+            if walls.contains(&new) || new_objects.contains(&(new, 'O')) || grid.not_in_bound(new) {
                 // can't move here
                 break;
             } else {

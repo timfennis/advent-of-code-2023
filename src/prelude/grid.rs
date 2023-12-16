@@ -66,11 +66,17 @@ impl Grid {
     }
 
     /// Returns whether a given point is within the bounds of this grid
-    pub fn in_bound(&self, point: Vec2) -> bool {
+    pub fn not_in_bound(&self, point: Vec2) -> bool {
         point.y < 0
             || point.x < 0
             || point.x >= self.width() as i64
             || point.y >= self.height() as i64
+    }
+    pub fn in_bound(&self, point: Vec2) -> bool {
+        point.y >= 0
+            && point.x >= 0
+            && point.x < self.width() as i64
+            && point.y < self.height() as i64
     }
     #[allow(dead_code)]
     pub fn neighbours4(&self, pos: impl Into<Vec2>) -> Vec<Vec2> {
