@@ -102,6 +102,21 @@ pub enum Direction {
     Up,
 }
 
+impl Direction {
+    pub fn turn_left(&self) -> Direction {
+        match self {
+            Direction::Right => Direction::Up,
+            Direction::Down => Direction::Right,
+            Direction::Left => Direction::Down,
+            Direction::Up => Direction::Left,
+        }
+    }
+
+    pub fn turn_right(&self) -> Direction {
+        self.turn_left().turn_left().turn_left()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Direction, Vec2};
