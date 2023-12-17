@@ -94,7 +94,7 @@ impl From<(usize, usize)> for Vec2 {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub enum Direction {
     Right,
     Down,
