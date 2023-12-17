@@ -1,24 +1,16 @@
 use crate::create_solution;
 use crate::prelude::{Direction, Grid, Vec2};
 use crate::puzzle::{Answerable, Solution};
-use ahash::HashMap;
+use ahash::{AHashMap, HashMap};
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, BinaryHeap, VecDeque};
 create_solution!(Day17, 2023, 17);
 
 impl Solution for Day17 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
-        // println!("{input}");
+        self.submit_part1(find_shortest_path(input, 1, 3));
+        self.submit_part2(find_shortest_path(input, 4, 10));
 
-        // self.submit_part1(solve_part_1(input));
-        self.submit_part2(solve_part_2(input));
-
-        // wrong answer; 1314
-        // wrong answer; 1316 (too high)
-        // wrong answer; 1270 (too high)
-        // wrong answer; 1246 (??)
-        // wrong answer; 1225
-        // 1330
         Ok(())
     }
 }
@@ -38,25 +30,19 @@ impl PartialOrd<Self> for BfsEntry {
 
 impl Ord for BfsEntry {
     fn cmp(&self, other: &Self) -> Ordering {
-        let self_dist = self.pos.manhattan_distance(&(142, 142).into());
-        let other_dist = other.pos.manhattan_distance(&(142, 142).into());
+        //TODO this is hardcoded to be some point far away from start
+        let self_dist = self.pos.manhattan_distance(&(1000, 1000).into());
+        let other_dist = other.pos.manhattan_distance(&(1000, 1000).into());
 
-        // let self_bad_dir = self.direction == Direction::Left || self.direction == Direction::Up;
-        // let other_bad_dir = other.direction == Direction::Left || other.direction == Direction::Up;
-
-        // if self_bad_dir && !other_bad_dir {
-        //     return Ordering::Greater;
-        // }
-
-        self_dist
-            .cmp(&other_dist)
-            .reverse()
-            .then(self.heat_loss.cmp(&other.heat_loss).reverse())
+        self.heat_loss
+            .cmp(&other.heat_loss)
+            .then(self_dist.cmp(&other_dist))
             .then(self.direction.cmp(&other.direction))
-            .then(self.pos.cmp(&other.pos)) // TODO: maybe this is not needed
+            .then(self.pos.cmp(&other.pos))
     }
 }
-fn solve_part_2(input: &str) -> usize {
+fn find_shortest_path(input: &str, min_travel: usize, max_travel: usize) -> usize {
+    assert!(min_travel <= max_travel);
     let grid = Grid::from_string(input, |_| true);
     let mut queue: BTreeSet<BfsEntry> = Default::default();
 
@@ -65,41 +51,22 @@ fn solve_part_2(input: &str) -> usize {
         direction: Direction::Right,
         heat_loss: 0,
     });
-    queue.insert(BfsEntry {
-        pos: Vec2::origin(),
-        direction: Direction::Down,
-        heat_loss: 0,
-    });
 
     let end: Vec2 = (grid.width() - 1, grid.height() - 1).into();
 
-    let mut seen: HashMap<(Vec2, Direction), usize> = Default::default();
-    let mut min = usize::MAX;
+    let mut seen: AHashMap<(Vec2, Direction), usize> = Default::default();
 
-    let mut counter = 0;
     while let Some(BfsEntry {
         pos,
         direction: last_dir,
         heat_loss,
     }) = queue.pop_first()
     {
-        counter += 1;
-
-        if counter % 10000 == 0 {
-            println!(
-                "{} {:?} {} queue_len: {}",
-                pos,
-                last_dir,
-                heat_loss,
-                queue.len()
-            );
-        }
-
         'dir: for new_dir in [last_dir.turn_left(), last_dir.turn_right()] {
             let mut new_pos = pos;
             let mut hl = heat_loss;
 
-            'offset: for offset in 1..=10 {
+            'offset: for offset in 1..=max_travel {
                 new_pos = new_pos.move_dir(new_dir);
 
                 if !grid.in_bound(new_pos) {
@@ -108,7 +75,7 @@ fn solve_part_2(input: &str) -> usize {
 
                 hl += grid.get_object(&new_pos).unwrap().to_digit(10).unwrap() as usize;
 
-                if offset <= 3 {
+                if offset < min_travel {
                     continue 'offset;
                 }
 
@@ -122,10 +89,6 @@ fn solve_part_2(input: &str) -> usize {
                         heat_loss: hl,
                     });
                     seen.insert((new_pos, new_dir), hl);
-                    if new_pos == end && hl < min {
-                        println!("Possible answer: {}", hl);
-                        min = hl;
-                    }
                 }
             }
         }
@@ -136,85 +99,12 @@ fn solve_part_2(input: &str) -> usize {
         .min()
         .unwrap()
 }
-fn solve_part_1(input: &str) -> usize {
-    let grid = Grid::from_string(input, |_| true);
-    let mut queue = VecDeque::new();
-    queue.push_front((Vec2::origin(), Direction::Right, 0, 0));
-
-    let end: Vec2 = (grid.width() - 1, grid.height() - 1).into();
-
-    let mut seen: HashMap<(Vec2, Direction, usize), usize> = Default::default();
-
-    seen.insert((Vec2::origin(), Direction::Left, 0), 0);
-    seen.insert((Vec2::origin(), Direction::Down, 0), 0);
-    seen.insert((Vec2::origin(), Direction::Right, 0), 0);
-    seen.insert((Vec2::origin(), Direction::Up, 0), 0);
-
-    let mut counter = 0;
-    while let Some((pos, last_dir, last_dir_steps, heat_loss)) = queue.pop_front() {
-        counter += 1;
-
-        if counter % 1000000 == 0 {
-            println!("{} {:?} {} {}", pos, last_dir, last_dir_steps, heat_loss);
-        }
-
-        for new_dir in [last_dir.turn_left(), last_dir.turn_right()] {
-            let new_pos = pos.move_dir(new_dir);
-
-            if !grid.in_bound(new_pos) {
-                continue;
-            }
-
-            let hl = heat_loss
-                + grid
-                    .get_object(&new_pos)
-                    .expect("must be a heat value at position")
-                    .to_digit(10)
-                    .expect("heat value must be foobar") as usize;
-
-            if *seen
-                .get(&(new_pos, new_dir, last_dir_steps))
-                .unwrap_or(&usize::MAX)
-                > hl
-            {
-                queue.push_back((new_pos, new_dir, 1, hl));
-                seen.insert((new_pos, new_dir, 1), hl);
-            }
-        }
-
-        if last_dir_steps < 3 {
-            let new_pos = pos.move_dir(last_dir);
-
-            if !grid.in_bound(new_pos) {
-                continue;
-            }
-
-            let hl =
-                heat_loss + (grid.get_object(&new_pos).unwrap().to_digit(10).unwrap() as usize);
-
-            if *seen
-                .get(&(new_pos, last_dir, last_dir_steps))
-                .unwrap_or(&usize::MAX)
-                > hl
-            {
-                queue.push_back((new_pos, last_dir, last_dir_steps + 1, hl));
-                seen.insert((new_pos, last_dir, last_dir_steps + 1), hl);
-            }
-        }
-    }
-
-    seen.iter()
-        .filter_map(|((pos, _, _), heat_loss)| (*pos == end).then_some(*heat_loss))
-        .min()
-        .unwrap()
-}
-
 #[cfg(test)]
 mod test {
     use crate::year2023::day17::*;
 
     #[test]
-    fn shloobala() {
+    fn year_2023_day_17_example() {
         let input = "2413432311323
 3215453535623
 3255245654254
@@ -228,7 +118,7 @@ mod test {
 1224686865563
 2546548887735
 4322674655533";
-        // assert_eq!(solve_part_1(input), 102);
-        assert_eq!(solve_part_2(input), 94);
+        assert_eq!(find_shortest_path(input, 1, 3), 102);
+        assert_eq!(find_shortest_path(input, 4, 10), 94);
     }
 }
