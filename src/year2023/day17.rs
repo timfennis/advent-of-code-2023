@@ -31,8 +31,8 @@ impl PartialOrd<Self> for BfsEntry {
 impl Ord for BfsEntry {
     fn cmp(&self, other: &Self) -> Ordering {
         //TODO this is hardcoded to be some point far away from start
-        let self_dist = self.pos.manhattan_distance(&(1000, 1000).into());
-        let other_dist = other.pos.manhattan_distance(&(1000, 1000).into());
+        let self_dist = self.pos.manhattan_distance(&(150, 150).into());
+        let other_dist = other.pos.manhattan_distance(&(150, 150).into());
 
         self.heat_loss
             .cmp(&other.heat_loss)
@@ -49,6 +49,11 @@ fn find_shortest_path(input: &str, min_travel: usize, max_travel: usize) -> usiz
     queue.insert(BfsEntry {
         pos: Vec2::origin(),
         direction: Direction::Right,
+        heat_loss: 0,
+    });
+    queue.insert(BfsEntry {
+        pos: Vec2::origin(),
+        direction: Direction::Down,
         heat_loss: 0,
     });
 

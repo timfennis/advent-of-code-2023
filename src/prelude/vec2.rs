@@ -21,22 +21,27 @@ impl Vec2 {
     /// Create a new Vec2 moved in the given direction
     /// Down is considered to be a positive y value
     pub fn move_dir(&self, dir: Direction) -> Self {
+        self.move_dir_dist(dir, 1)
+    }
+
+    #[inline]
+    pub fn move_dir_dist(&self, dir: Direction, dist: i64) -> Self {
         match dir {
             Direction::Right => Vec2 {
-                x: self.x + 1,
+                x: self.x + dist,
                 y: self.y,
             },
             Direction::Down => Vec2 {
                 x: self.x,
-                y: self.y + 1,
+                y: self.y + dist,
             },
             Direction::Left => Vec2 {
-                x: self.x - 1,
+                x: self.x - dist,
                 y: self.y,
             },
             Direction::Up => Vec2 {
                 x: self.x,
-                y: self.y - 1,
+                y: self.y - dist,
             },
         }
     }
