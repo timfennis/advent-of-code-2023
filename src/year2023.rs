@@ -79,14 +79,17 @@ mod test {
     pub fn year_2023_day_7() {
         check(&mut year2023::Day7::default(), 250946742, 251824095);
     }
+
     #[test]
     pub fn year_2023_day_8() {
         check(&mut year2023::Day8::default(), 17141, 10818234074807u64);
     }
+
     #[test]
     pub fn year_2023_day_9() {
         check(&mut year2023::Day9::default(), 1861775706, 1082);
     }
+
     #[test]
     pub fn year_2023_day_10() {
         check(&mut year2023::Day10::default(), 6897, 367);
@@ -96,10 +99,12 @@ mod test {
     pub fn year_2023_day_11() {
         check(&mut year2023::Day11::default(), 9918828, 692506533832u64);
     }
+
     #[test]
     pub fn year_2023_day_12() {
         check(&mut year2023::Day12::default(), 7007, 3476169006222u64);
     }
+
     #[test]
     pub fn year_2023_day_13() {
         check(&mut year2023::Day13::default(), 28651, 25450);
@@ -124,8 +129,14 @@ mod test {
     pub fn year_2023_day_17() {
         check(&mut year2023::Day17::default(), 916, 1067);
     }
+
     #[test]
     pub fn year_2023_day_18() {
         check(&mut year2023::Day18::default(), 62500, 122109860712709u64);
+    }
+
+    #[test]
+    pub fn year_2023_day_19() {
+        check(&mut year2023::Day19::default(), 480738, 131550418841958usize);
     }
 }

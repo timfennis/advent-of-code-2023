@@ -15,6 +15,7 @@ impl Solution for Day19 {
         Ok(())
     }
 }
+
 #[derive(Debug, Copy, Clone)]
 enum Identifier {
     X,
@@ -40,6 +41,7 @@ impl FromStr for Identifier {
         }
     }
 }
+
 #[derive(Debug, Copy, Clone)]
 enum Condition {
     LessThan(Identifier, usize),
@@ -69,47 +71,76 @@ impl Condition {
         }
     }
 
-    fn modify_range(&self, (x, m, a, s): PartRanges) -> PartRanges {
-        fn less(range: Range<usize>, num: usize) -> Range<usize> {
-            if num < range.start {
-                println!("DESTROYED RANGE");
-                return 0..0;
+    fn split(&self, (x, m, a, s): PartRanges) -> (PartRanges, PartRanges) {
+        fn less(range: Range<usize>, num: usize) -> (Range<usize>, Range<usize>) {
+            if !range.contains(&num) {
+                panic!("this is not supposed to happen");
             }
-            Range {
-                start: std::cmp::min(range.start, num),
-                end: std::cmp::min(range.end, num),
-            }
+
+            // 300..700
+            // split on <500
+            // 300..500 && 500..700
+            assert_eq!((range.start..num).len() + (num..range.end).len(), range.len());
+            (range.start..num, num..range.end)
         }
 
-        fn more(range: Range<usize>, num: usize) -> Range<usize> {
-            if num > range.end {
-                println!("DESTROYED RANGE");
-                return 0..0;
+        fn more(range: Range<usize>, num: usize) -> (Range<usize>, Range<usize>) {
+            if !range.contains(&num) {
+                panic!("this is not supposed to happen");
             }
-            Range {
-                start: std::cmp::max(range.start, num + 1),
-                end: std::cmp::max(range.end, num),
-            }
+
+
+            // 300..700
+            // split on >500
+            // 300..501 && 501..700
+            let (a, b) = ((num + 1)..range.end, range.start..(num + 1));
+            assert_eq!(a.len() + b.len(), range.len());
+            (a, b)
         }
 
         match self {
             Condition::LessThan(i, v) => match i {
-                Identifier::X => (less(x, *v), m, a, s),
-                Identifier::M => (x, less(m, *v), a, s),
-                Identifier::A => (x, m, less(a, *v), s),
-                Identifier::S => (x, m, a, less(s, *v)),
+                Identifier::X => {
+                    let (good, bad) = less(x.clone(), *v);
+                    ((good, m.clone(), a.clone(), s.clone()), (bad, m, a, s))
+                }
+                Identifier::M => {
+                    let (good, bad) = less(m.clone(), *v);
+                    ((x.clone(), good, a.clone(), s.clone()), (x, bad, a, s))
+                }
+                Identifier::A => {
+                    let (good, bad) = less(a.clone(), *v);
+                    ((x.clone(), m.clone(), good, s.clone()), (x, m, bad, s))
+                }
+                Identifier::S => {
+                    let (good, bad) = less(s.clone(), *v);
+                    ((x.clone(), m.clone(), a.clone(), good), (x, m, a, bad))
+                }
             },
 
             Condition::GreaterThan(i, v) => match i {
-                Identifier::X => (more(x, *v), m, a, s),
-                Identifier::M => (x, more(m, *v), a, s),
-                Identifier::A => (x, m, more(a, *v), s),
-                Identifier::S => (x, m, a, more(s, *v)),
+                Identifier::X => {
+                    let (good, bad) = more(x.clone(), *v);
+                    ((good, m.clone(), a.clone(), s.clone()), (bad, m, a, s))
+                }
+                Identifier::M => {
+                    let (good, bad) = more(m.clone(), *v);
+                    ((x.clone(), good, a.clone(), s.clone()), (x, bad, a, s))
+                }
+                Identifier::A => {
+                    let (good, bad) = more(a.clone(), *v);
+                    ((x.clone(), m.clone(), good, s.clone()), (x, m, bad, s))
+                }
+                Identifier::S => {
+                    let (good, bad) = more(s.clone(), *v);
+                    ((x.clone(), m.clone(), a.clone(), good), (x, m, a, bad))
+                }
             },
-            Condition::Always => (x, m, a, s),
+            _ => unreachable!("RIGHT?!"),
         }
     }
 }
+
 type Part = (usize, usize, usize, usize);
 
 fn solve(input: &str) -> (usize, usize) {
@@ -199,111 +230,40 @@ fn solve(input: &str) -> (usize, usize) {
         ranges: PartRanges,
         step: &str,
         workflows: &WorkflowMap,
-    ) -> Option<(
-        Vec<Range<usize>>,
-        Vec<Range<usize>>,
-        Vec<Range<usize>>,
-        Vec<Range<usize>>,
-    )> {
+    ) -> usize {
         if step == "A" {
-            return Some((
-                vec![ranges.0],
-                vec![ranges.1],
-                vec![ranges.2],
-                vec![ranges.3],
-            ));
+            return ranges.0.len() * ranges.1.len() * ranges.2.len() * ranges.3.len();
         }
 
         if step == "R" {
-            return None;
+            return 0;
         }
 
         let rules = workflows.get(step).unwrap();
 
-        let mut xr = vec![ranges.0.clone()];
-        let mut mr = vec![ranges.1.clone()];
-        let mut ar = vec![ranges.2.clone()];
-        let mut sr = vec![ranges.3.clone()];
-        for (condition, next) in rules {
-            let new_ranges = condition.modify_range(ranges.clone());
-            if let Some((xx, mm, aa, ss)) = find_rec(new_ranges, next, workflows) {
-                for x in xx {
-                    let mut done = false;
-                    for er in xr.iter_mut() {
-                        let merge = merge_range(er.clone(), x.clone());
-                        if merge.is_ok() {
-                            *er = merge.unwrap();
-                            done = true;
-                            break;
-                        }
-                    }
-                    if !done {
-                        xr.push(x);
-                    }
+        let mut ans = 0;
+        let mut cur_ranges = ranges;
+        for (condition, name) in rules {
+
+            match condition {
+                Condition::LessThan(_, _) | Condition::GreaterThan(_, _) => {
+                    let (good, bad) = condition.split(cur_ranges.clone());
+
+                    println!("{:?} SPLIT INTO:\n{:?} AND:\n{:?}", condition, good, bad);
+                    ans += find_rec(good, name, workflows);
+                    cur_ranges = bad;
                 }
-
-                for m in mm {
-                    let mut done = false;
-                    for er in mr.iter_mut() {
-                        let merge = merge_range(er.clone(), m.clone());
-                        if merge.is_ok() {
-                            *er = merge.unwrap();
-                            done = true;
-                            break;
-                        }
-                    }
-
-                    if done == false {
-                        mr.push(m);
-                    }
-                }
-
-                for a in aa {
-                    let mut done = false;
-                    for er in ar.iter_mut() {
-                        let merge = merge_range(er.clone(), a.clone());
-                        if merge.is_ok() {
-                            *er = merge.unwrap();
-                            done = true;
-                            break;
-                        }
-                    }
-
-                    if done == false {
-                        ar.push(a);
-                    }
-                }
-
-                for s in ss {
-                    let mut done = false;
-                    for er in sr.iter_mut() {
-                        let merge = merge_range(er.clone(), s.clone());
-                        if merge.is_ok() {
-                            *er = merge.unwrap();
-                            done = true;
-                            break;
-                        }
-                    }
-
-                    if done == false {
-                        sr.push(s);
-                    }
+                Condition::Always => {
+                    println!("ALWAYS {:?}", condition);
+                    ans += find_rec(cur_ranges.clone(), name, workflows);
                 }
             }
         }
 
-        Some((xr, mr, ar, sr))
+        ans
     }
 
-    let (xx, mm, aa, ss) =
-        find_rec((1..4001, 1..4001, 1..4001, 1..4001), "in", &workflows).unwrap();
-
-    println!("{:?} {:?} {:?} {:?} ", xx, mm, aa, ss);
-
-    let ans = xx.iter().map(|r| r.len()).sum::<usize>()
-        * mm.iter().map(|r| r.len()).sum::<usize>()
-        * aa.iter().map(|r| r.len()).sum::<usize>()
-        * ss.iter().map(|r| r.len()).sum::<usize>();
+    let ans = find_rec((1..4001, 1..4001, 1..4001, 1..4001), "in", &workflows);
 
     // let ans = 0;
     (
@@ -311,9 +271,10 @@ fn solve(input: &str) -> (usize, usize) {
             .iter()
             .map(|(x, m, a, s)| *x + *m + *a + *s)
             .sum(),
-        ans, // f.0.len() * f.1.len() * f.2.len() * f.3.len(),
+        ans
     )
 }
+
 fn merge_range(
     r1: Range<usize>,
     r2: Range<usize>,
