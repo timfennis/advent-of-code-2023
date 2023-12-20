@@ -3,21 +3,38 @@ use crate::puzzle::{Answerable, Solution};
 use ahash::HashMap;
 use itertools::Itertools;
 use std::collections::{HashSet, VecDeque};
+use std::fmt::Write;
 use std::io::stdin;
+use num::integer::lcm;
 create_solution!(Day20, 2023, 20);
 
 impl Solution for Day20 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
-        println!("{input}");
+
+        // GB FX FZ ZG ZQ PQ MJ SQ CD
+        // 1  2  4  6  7  9  10 11 12
+        // 11_1  _11_  1111
+
+        // HT VP MQ GZ BD LJ CX XR XD
+        // 1  2  5  6  8  9  10 11 12
+        // 11__  11_1  1111
+
+        // VK MP LT XF DB DZ GD CV
+        // 1  2  6  8  9  10 11 12
+        // 11__  _1_1  1111
+
+        // ZZ SH BF GG XS DX BM
+        // 1  5  7  9  10 11 12
+        // 1___  1_1_  1111
 
         self.submit_part1(solve(input));
 
-        // let mut new_input = String::from(input);
-        // new_input.push_str(", rx");
+        // 195397365072     WRONG
+        // 225450741686403  WRONG
+        // 240853834793347  ?????
+        // 240853834793347
 
-        // println!("{new_input}");
-        // return Ok(());
-
+        // 4198764531195 is not correct
         self.submit_part2(solvep2(input));
 
         Ok(())
@@ -39,8 +56,7 @@ fn solve(input: &str) -> usize {
         } else if from.starts_with('&') {
             from = from.strip_prefix('&').unwrap();
             conjunction_modules.insert(from, Default::default());
-        } else if from == "broadcaster" {
-        } else {
+        } else if from == "broadcaster" {} else {
             panic!("invalid module");
         }
 
@@ -130,8 +146,7 @@ fn solvep2(input: &str) -> usize {
         } else if from.starts_with('&') {
             from = from.strip_prefix('&').unwrap();
             conjunction_modules.insert(from, Default::default());
-        } else if from == "broadcaster" {
-        } else {
+        } else if from == "broadcaster" {} else {
             panic!("invalid module");
         }
 
@@ -161,8 +176,53 @@ fn solvep2(input: &str) -> usize {
         stdin().read_line(&mut string).unwrap();
     }
 
-    for presses in 1.. {
+    fn print(m: &HashMap<&str, bool>) {
+        // MOST SIGNIFICANT BIT IS ON THE RIGHT SIDE
+        let cells = [
+            ["GB", "FX", "BN", "FZ", "BK", "ZG", "ZQ", "TT", "PQ", "MJ", "SQ", "CD"],
+            ["HT", "VP", "QJ", "HJ", "MQ", "GZ", "DS", "BD", "LJ", "CX", "XR", "XD"],
+            ["VK", "MP", "BQ", "PR", "QL", "LT", "VD", "XF", "DB", "DZ", "GD", "CV"],
+            ["ZZ", "RZ", "ZC", "DH", "SH", "MR", "BF", "GG", "PJ", "XS", "DX", "BM"],
+            // ["ZZ", "RZ", "QJ", "PR", "SH", "MR", "BF", "GG", "PJ", "XS", "DX", "BM"],
+            // ["VK", "MP", "BQ", "DH", "BK", "LT", "VD", "XF", "DB", "DZ", "GD", "CV"],
+            // ["HT", "VP", "BN", "HJ", "MQ", "GZ", "DS", "BD", "LJ", "CX", "XR", "XD"],
+            // ["GB", "FX", "ZC", "FZ", "QL", "ZG", "ZQ", "TT", "PQ", "MJ", "SQ", "CD"],
+        ];
+        let mut buf = String::new();
+        for cc in cells {
+            for c in cc.iter().rev() {
+                let bit = if *m.get(c.to_ascii_lowercase().as_str()).unwrap() { 1 } else { 0 };
+                buf.push_str(&format!("{}", bit));
+            }
+            buf.push(' ');
+            // print!(" ");
+        }
+
+        println!("{buf}");
+    }
+
+    fn all_ones(m: &HashMap<&str, bool>, cells: &[&str]) -> bool {
+        // println!("---------");
+        for c in cells {
+            let val = *m.get(c.to_ascii_lowercase().as_str()).unwrap();
+            // println!("{c} {val}");
+            if val == false {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    // let v = connections.iter().sorted().collect_vec();
+    // dbg!(&v);
+    // wait();
+
+    let mut vals: [HashSet<usize>; 4] = [HashSet::new(), HashSet::new(), HashSet::new(), HashSet::new()];
+
+    for presses in 1..4096 {
         queue.push_front(("YOU!", "broadcaster", false));
+
 
         // dbg!(
         //     conjunction_modules.get("ff").unwrap(),
@@ -171,15 +231,19 @@ fn solvep2(input: &str) -> usize {
         //     conjunction_modules.get("nt").unwrap(),
         // );
         //
-        if presses % 2048 == 0 {
-            // println!("--------- {presses} -----------");
-            // dbg!(&conjunction_modules);
-            // wait();
-        }
 
-        if presses % 14970971 == 0 {
-            println!("----- CYCLE {} -----", presses / 14970971);
-        }
+        // 111101101010
+
+        // if presses >= 3947 {
+        //     print!("{presses} ");
+        //     print(&flip_flop_modules);
+        //     wait();
+        // }
+
+        // GB FX FZ ZG ZQ PQ MJ SQ CD
+        // 1  2  4  6  7  9  10 11 12
+        // 11_1  _11_  1111
+
 
         // for (&name, state) in &flip_flop_modules {
         //     if *state && !has_been_true.contains(name) {
@@ -188,6 +252,7 @@ fn solvep2(input: &str) -> usize {
         //     }
         // }
 
+
         while let Some((prev_module, current_module, pulse)) = queue.pop_front() {
             // println!("{current_module} {pulse}");
             if pulse {
@@ -195,64 +260,39 @@ fn solvep2(input: &str) -> usize {
             } else {
                 low += 1;
             }
-            // Every 14970971 presses there is a cycle
-            // The cycle breaks in some way around: 209593593
-            // jg 14970970 - 0 1 0 0
-            // jg 15183378 - 1 0 0 0
-            // jg 15244066 - 0 0 0 1
-            // jm 15799840 - 0 1 0 0
-            // rh 15862992 - 0 1 0 0
-            // jm 16088056 - 0 0 0 1
 
-            // jg 29941941 - 0 1 0 0
-            // jg 30366757 - 1 0 0 0
-            // jg 30488133 - 0 0 0 1
-            // jm 31599681 - 0 1 0 0
-            // rh 31725985 - 0 1 0 0
-            // jm 32176113 - 0 0 0 1
-
-            // jg 44912912 - 0 1 0 0
-            // jg 45550136 - 1 0 0 0
-            // jg 45732200 - 0 0 0 1
-            // jm 47399522 - 0 1 0 0
-            // rh 47588978 - 0 1 0 0
-            // jm 48264170 - 0 0 0 1
-
-            // jg 59883883 - 0 1 0 0
-            // jg 60733515 - 1 0 0 0
-            // jg 60976267 - 0 0 0 1
-            // jm 63199363 - 0 1 0 0
-            // rh 63451971 - 0 1 0 0
-            // jm 64352227 - 0 0 0 1
-
-            // jg 74854854 - 0 1 0 0
-            // jg 75916894 - 1 0 0 0
-            // jg 76220334 - 0 0 0 1
-            // jm 78999204 - 0 1 0 0
-            // rh 79314964 - 0 1 0 0
-            // jm 80440284 - 0 0 0 1
-
-            // JG JG JG JM RH JM
-            // JG JG JG JM RH JM
-            // JG JG JG JM RH
-            if current_module == "mg" && pulse {
-                let f = conjunction_modules.get("mg").unwrap();
-                let jm = if *f.get("jm").unwrap() { 1 } else { 0 };
-                let hf = if *f.get("hf").unwrap() { 1 } else { 0 };
-                let jg = if *f.get("jg").unwrap() { 1 } else { 0 };
-                let rh = if *f.get("rh").unwrap() { 1 } else { 0 };
-
-                if jm > 0 || hf > 0 || jg > 0 || rh > 0 {
-                    println!(
-                        "{prev_module} {presses} {} - {} {} {} {}",
-                        presses % 14970971,
-                        jg,
-                        jm,
-                        rh,
-                        hf,
-                    );
-                }
+            // ["GB", "FX", "BN", "FZ", "BK", "ZG", "ZQ", "TT", "PQ", "MJ", "SQ", "CD"]
+            // 0b111101101011
+            if all_ones(&flip_flop_modules, &["GB", "FX", "FZ", "ZG", "ZQ", "PQ", "MJ", "SQ", "CD"]) {
+                vals[0].insert(presses);
+                dbg!(&vals);
             }
+
+            // HT VP MQ GZ BD LJ CX XR XD
+            // 1  2  5  6  8  9  10 11 12
+            // 11__  11_1  1111
+
+            if all_ones(&flip_flop_modules, &["HT", "VP", "MQ", "GZ", "BD", "LJ", "CX", "XR", "XD"]) {
+                vals[1].insert(presses);
+                dbg!(&vals);
+            }
+            // VK MP LT XF DB DZ GD CV
+            // 1  2  6  8  9  10 11 12
+            // 11__  _1_1  1111
+
+            if all_ones(&flip_flop_modules, &["VK", "MP", "LT", "XF", "BD", "DZ", "GD", "CV"]) {
+                vals[2].insert(presses);
+                dbg!(&vals);
+            }
+            // ZZ SH BF GG XS DX BM
+            // 1  5  7  9  10 11 12
+            // 1___  1_1_  1111
+
+            if all_ones(&flip_flop_modules, &["ZZ", "SH", "BF", "GG", "XS", "DX", "BM"]) {
+                vals[3].insert(presses);
+                dbg!(&vals);
+            }
+
 
             if current_module == "rx" && !pulse {
                 return presses;
@@ -297,7 +337,14 @@ fn solvep2(input: &str) -> usize {
         }
     }
 
-    low * high
+    // let mut ans = usize::MAX;
+    dbg!(&vals);
+    let mut ans = usize::MAX;
+    let l = lcm(*vals[0].iter().max().unwrap(), *vals[1].iter().max().unwrap());
+    let l = lcm(l, *vals[2].iter().max().unwrap());
+    let l = lcm(l, *vals[3].iter().max().unwrap());
+    ans = std::cmp::min(l, ans);
+    ans
 }
 
 #[cfg(test)]

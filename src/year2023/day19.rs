@@ -248,13 +248,10 @@ fn solve(input: &str) -> (usize, usize) {
             match condition {
                 Condition::LessThan(_, _) | Condition::GreaterThan(_, _) => {
                     let (good, bad) = condition.split(cur_ranges.clone());
-
-                    println!("{:?} SPLIT INTO:\n{:?} AND:\n{:?}", condition, good, bad);
                     ans += find_rec(good, name, workflows);
                     cur_ranges = bad;
                 }
                 Condition::Always => {
-                    println!("ALWAYS {:?}", condition);
                     ans += find_rec(cur_ranges.clone(), name, workflows);
                 }
             }
