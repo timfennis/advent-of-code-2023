@@ -67,6 +67,14 @@ impl Vec2 {
     pub fn mirror_y(&self, y_axis: i64) -> Self {
         self.mirror_between_x((y_axis, y_axis))
     }
+
+    /// Returns a copy of this point adjusted to a grid size that's presumed to be repeating
+    pub fn adjust_to_grid_size(&self, width: usize, height: usize) -> Vec2 {
+        Vec2 {
+            x: self.x.rem_euclid(width as i64),
+            y: self.y.rem_euclid(height as i64),
+        }
+    }
 }
 
 impl Display for Vec2 {
