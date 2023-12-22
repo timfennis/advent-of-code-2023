@@ -14,7 +14,7 @@ impl Solution for Day16 {
     }
 }
 
-pub fn solve_p2(input: &str) -> usize {
+fn solve_p2(input: &str) -> usize {
     let grid = Grid::from_string(input, |ch| ch != '.');
     let mut ans = Vec::new();
     for x in 0..grid.width() {
@@ -47,7 +47,7 @@ pub fn solve_p2(input: &str) -> usize {
     *ans.iter().max().unwrap()
 }
 
-pub fn solve(input: &str, start: Vec2, start_dir: Direction) -> usize {
+fn solve(input: &str, start: Vec2, start_dir: Direction) -> usize {
     let grid = Grid::from_string(input, |ch| ch != '.');
 
     let mut queue: Vec<(Vec2, Direction)> = Vec::new();
@@ -132,7 +132,7 @@ pub fn solve(input: &str, start: Vec2, start_dir: Direction) -> usize {
 #[cfg(test)]
 mod test {
     use crate::prelude::{Direction, Vec2};
-    use crate::year2023::{solve, solve_p2};
+    use crate::year2023::day16::{solve, solve_p2};
     use std::ffi::c_short;
 
     #[test]
