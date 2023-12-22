@@ -6,12 +6,42 @@ use itertools::Itertools;
 use std::thread::current;
 create_solution!(Day22, 2023, 22);
 
+#[derive(Debug, Eq, PartialEq, Clone)]
+struct Brick {
+    id: usize,
+    start: Vec3,
+    end: Vec3,
+}
+
+impl Brick {
+    fn intersects(&self, other: &Brick) -> bool {
+        for x in self.start.x..=self.end.x {
+            for y in self.start.y..=self.end.y {
+                for z in self.start.z..=self.end.z {
+                    for xx in other.start.x..=other.end.x {
+                        for yy in other.start.y..=other.end.y {
+                            for zz in other.start.z..=other.end.z {
+                                if xx == x && yy == y && zz == z {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        false
+    }
+}
+
 impl Solution for Day22 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         let (a, b) = solve(input);
         self.submit_part1(a);
         // -- 96384
         assert!(b < 96384); // was too high
+        assert!(b < 71987);
         self.submit_part2(b);
         Ok(())
     }
@@ -19,7 +49,7 @@ impl Solution for Day22 {
 
 fn solve(input: &str) -> (usize, usize) {
     let mut bricks = Vec::new();
-    for line in input.lines() {
+    for (idx, line) in input.lines().enumerate() {
         let (start, end) = line.split_once('~').expect("line has to contain ~");
         let start = match start
             .split(',')
@@ -40,125 +70,74 @@ fn solve(input: &str) -> (usize, usize) {
             _ => panic!("kapot"),
         };
 
-        bricks.push((start, end));
+        bricks.push(Brick {
+            id: idx + 1,
+            start,
+            end,
+        });
     }
-    // let og_brick_count = bricks.len();
 
-    dbg!(bricks.len());
-    println!("Brick len: {}", bricks.len());
     // Settle the bricks
-    let (bricks, _) = settle(bricks, false);
-
-    dbg!(&bricks);
+    let _ = settle(&mut bricks);
 
     let mut safe = 0;
     let mut sum = 0;
-    for (idx, current_brick) in bricks.iter().enumerate() {
-        let new_set = bricks
+    for current_brick in &bricks {
+        let mut new_set = bricks
             .iter()
-            .filter(|&b| b != current_brick)
-            .copied()
+            .filter(|&b| b.id != current_brick.id)
+            .cloned()
             .collect_vec();
 
-        let (_, changes) = settle(new_set, true);
-        println!("{idx} has {changes}");
-        sum += changes;
-        println!("Subtotal: {sum}");
-        if changes == 0 {
+        let changed_bricks = settle(&mut new_set);
+        sum += changed_bricks;
+        if changed_bricks == 0 {
             safe += 1;
         }
     }
 
     (safe, sum)
 }
-type Brick = (Vec3, Vec3);
-
-fn settle(bricks: Vec<Brick>, quick_abort: bool) -> (Vec<Brick>, usize) {
-    let mut current_bricks = bricks;
-    let mut total_changes = 0;
+fn settle(bricks: &mut Vec<Brick>) -> usize {
+    let mut changed_bricks: HashSet<usize> = Default::default();
     loop {
-        let mut new_bricks = Vec::with_capacity(1500);
-        let pre = total_changes;
-        for current_brick in &current_bricks {
+        // let bricks_len = bricks.len();
+        let mut changes = false;
+        for idx in 0..bricks.len() {
+            let mut current_brick = bricks.get(idx).unwrap().clone();
+
             // Try to drop current_brick
             // we can drop the current brick 1 spot
             // First we check if the brick hasn't already reached the _bottom_
-            let mut new_brick = *current_brick;
-            let mut brick_changes = 0;
-            'drop: loop {
-                if new_brick.0.z == 1 || new_brick.1.z == 1 {
-                    // continue with the next brick
-                    // println!("SETTLED BOTTOM");
-                    new_bricks.push(new_brick);
-                    break 'drop;
+            loop {
+                if current_brick.start.z == 1 || current_brick.end.z == 1 {
+                    break;
                 }
 
                 // We drop the brick 1 slot down
-                new_brick.0.z -= 1;
-                new_brick.1.z -= 1;
-                brick_changes += 1;
+                current_brick.start.z -= 1;
+                current_brick.end.z -= 1;
 
-                for other_brick in &current_bricks {
-                    // don't collide with self
-                    if other_brick == current_brick {
-                        continue;
-                    }
-
-                    if brick_intersect(new_brick, *other_brick) {
-                        new_brick.0.z += 1;
-                        new_brick.1.z += 1;
-                        brick_changes -= 1;
-                        // println!("SETTLED ON ANOTHER BRICK {}", total_changes);
-                        new_bricks.push(new_brick);
-                        break 'drop;
-                    }
-                }
-            }
-
-            if brick_changes > 0 {
-                total_changes += 1;
-            }
-        }
-
-        current_bricks = new_bricks;
-
-        if total_changes == pre {
-            return (current_bricks, total_changes);
-        } else {
-            // println!("AGAIN!!");
-        }
-    }
-}
-fn brick_intersect((s1, e1): Brick, (s2, e2): Brick) -> bool {
-    for x in s1.x..=e1.x {
-        for y in s1.y..=e1.y {
-            for z in s1.z..=e1.z {
-                for xx in s2.x..=e2.x {
-                    for yy in s2.y..=e2.y {
-                        for zz in s2.z..=e2.z {
-                            if xx == x && yy == y && zz == z {
-                                return true;
-                            }
-                        }
-                    }
+                if bricks
+                    .iter()
+                    .filter(|b| b.id != current_brick.id)
+                    .any(|b| b.intersects(&current_brick))
+                {
+                    // There is a collision making the current mutation invalid
+                    break;
+                } else {
+                    // println!("{} was moved down", current_brick.id);
+                    changes = true;
+                    bricks[idx] = current_brick.clone();
+                    changed_bricks.insert(current_brick.id);
                 }
             }
         }
-    }
 
-    false
-}
-fn enum_brick((start, end): (Vec3, Vec3)) -> AHashSet<Vec3> {
-    let mut positions: AHashSet<Vec3> = Default::default();
-    for x in start.x..=end.x {
-        for y in start.y..=end.y {
-            for z in start.z..=end.z {
-                positions.insert(Vec3 { x, y, z });
-            }
+        if !changes {
+            return changed_bricks.len();
         }
     }
-
-    positions
 }
 
 #[cfg(test)]
