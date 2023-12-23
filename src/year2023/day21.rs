@@ -17,8 +17,8 @@ impl Solution for Day21 {
         let p2_327 = solve_part2(input, 327, 327);
         assert_eq!(p2_327, c_327);
 
-        let c_458 = solve(input, (327 + 131 + 131));
-        let p2_458 = solve_part2(input, 327, (327 + 131 + 131));
+        let c_458 = solve(input, 327 + 131 + 131);
+        let p2_458 = solve_part2(input, 327, 327 + 131 + 131);
         assert_eq!(p2_458, c_458);
 
         let part_2_ans = solve_part2(input, 131 * 2 + 65, 26501365);
@@ -30,7 +30,7 @@ impl Solution for Day21 {
     }
 }
 
-fn solve_part2(input: &str, probe_len: usize, steps: usize) -> usize {
+fn solve_part2(input: &str, _probe_len: usize, steps: usize) -> usize {
     let grid = Grid::from_string(input, |ch| ch != '.');
 
     // let walls: HashSet<Vec2> = Default::default();
@@ -134,7 +134,7 @@ fn solve_part2(input: &str, probe_len: usize, steps: usize) -> usize {
     //      *%X%*
     //       *B*
     // If i'm moving n steps to the right
-    let n = steps;
+    let _n = steps;
     let total_blocks_per_direction = steps / grid.width();
     let full_blocks_per_direction = total_blocks_per_direction - 1;
 
@@ -160,8 +160,8 @@ fn solve_part2(input: &str, probe_len: usize, steps: usize) -> usize {
     println!("odd_block_count {odd_block_count}");
     dbg!(
         // Middle part
-        (center_block_count * get(0, 0)),
-        (odd_block_count * get(0, 1)),
+        center_block_count * get(0, 0),
+        odd_block_count * get(0, 1),
         // Top and stuff
         get(-2, 0),
         get(2, 0),
@@ -217,7 +217,7 @@ fn solve(input: &str, steps: usize) -> usize {
 
     let mut lens = Vec::new();
 
-    for steps_taken in 0..steps {
+    for _steps_taken in 0..steps {
 
         // 26 501 365
         let mut next_queue: HashSet<Vec2> = Default::default();

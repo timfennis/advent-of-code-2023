@@ -76,7 +76,7 @@ fn solve(input: &str) -> usize {
 
     let mut queue: VecDeque<(&str, &str, bool)> = Default::default();
 
-    for i in 0..1000 {
+    for _i in 0..1000 {
         queue.push_front(("YOU!", "broadcaster", false));
         // println!("------ ITERATION {i} ------");
         // dbg!(&flip_flop_modules, &conjunction_modules);
@@ -166,7 +166,7 @@ fn solvep2(input: &str) -> usize {
 
     let mut queue: VecDeque<(&str, &str, bool)> = Default::default();
 
-    let mut has_been_true: HashSet<&str> = Default::default();
+    let _has_been_true: HashSet<&str> = Default::default();
     println!("FLIP FLOPS: {}", flip_flop_modules.len());
     println!("CONJUNCTION: {}", conjunction_modules.len());
 
