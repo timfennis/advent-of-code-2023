@@ -22,16 +22,45 @@ fn solve(input: &str) -> (usize, usize) {
     let (p1_graph, start, end) = parse_graph(input, false);
     let p1_ans = dfs(&p1_graph, start, end);
 
-    let (p2_graph, start, end) = parse_graph(input, true);
-    let p2_graph = compress(p2_graph);
+    let (mut p2_graph, start, end) = parse_graph(input, true);
+    println!("Part 2 graph len pre compression {}", p2_graph.len());
+    compress(&mut p2_graph);
+    println!("Part 2 graph len after compression {}", p2_graph.len());
     let p2_ans = dfs(&p2_graph, start, end);
     // let p2_ans = 0;
 
     (p1_ans, p2_ans)
 }
 
-fn compress(graph: Graph) -> Graph {
-    graph
+fn compress(graph: &mut Graph) {
+    let mut corridors = Vec::new();
+    for (from, nbs) in graph.iter() {
+        if nbs.len() == 2 {
+            corridors.push(*from);
+        }
+    }
+
+    for cor in corridors {
+        if let Some(edges) = graph.get(&cor).cloned() {
+            assert_eq!(edges.len(), 2);
+            let mut edges = edges.iter();
+            let (start, start_w) = edges.next().unwrap();
+            let (end, end_w) = edges.next().unwrap();
+
+            let mut start_node = graph.get(start).unwrap().clone();
+            // Remove the corridor from the graph
+            start_node.retain(|(n, _)| n != &cor);
+            start_node.push((*end, start_w + end_w));
+            graph.insert(*start, start_node);
+
+            let mut end_node = graph.get(end).unwrap().clone();
+            end_node.retain(|(n, _)| n != &cor);
+            end_node.push((*start, start_w + end_w));
+            graph.insert(*end, end_node);
+
+            graph.remove(&cor);
+        }
+    }
 }
 
 fn parse_graph(input: &str, part_2: bool) -> (Graph, Vec2, Vec2) {
