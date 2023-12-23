@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
-#[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Debug, Hash, Copy)]
+#[derive(PartialOrd, PartialEq, Ord, Eq, Clone, Hash, Copy)]
 pub struct Vec2 {
     pub x: i64,
     pub y: i64,
@@ -83,6 +83,12 @@ impl Display for Vec2 {
     }
 }
 
+impl Debug for Vec2 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{},{}", self.x, self.y)
+    }
+}
+
 impl From<(i64, i64)> for Vec2 {
     fn from((x, y): (i64, i64)) -> Self {
         Self { x, y }
@@ -127,6 +133,15 @@ impl Direction {
 
     pub fn turn_right(&self) -> Direction {
         self.turn_left().turn_left().turn_left()
+    }
+
+    pub fn all() -> [Direction; 4] {
+        [
+            Direction::Down,
+            Direction::Left,
+            Direction::Right,
+            Direction::Up,
+        ]
     }
 }
 
