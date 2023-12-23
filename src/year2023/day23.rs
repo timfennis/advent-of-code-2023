@@ -10,234 +10,120 @@ impl Solution for Day23 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
         // self.submit_part1(solve_part1(input));
 
-        let part2 = herp_derp(input);
-        assert_ne!(part2, 6051);
-        assert_ne!(part2, 6050);
-        assert_ne!(part2, 5815);
-        self.submit_part2(part2);
+        let (p1, p2) = solve(input);
+        self.submit_part1(p1);
+        self.submit_part2(p2);
 
         Ok(())
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
-struct QueueEntry {
-    current_pos: Vec2,
-    path: Vec<Vec2>,
+fn solve(input: &str) -> (usize, usize) {
+    let (p1_graph, start, end) = parse_graph(input, false);
+    let p1_ans = dfs(&p1_graph, start, end);
+
+    let (p2_graph, start, end) = parse_graph(input, true);
+    let p2_graph = compress(p2_graph);
+    let p2_ans = dfs(&p2_graph, start, end);
+    // let p2_ans = 0;
+
+    (p1_ans, p2_ans)
 }
 
-impl PartialOrd for QueueEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+fn compress(graph: Graph) -> Graph {
+    graph
 }
 
-impl Ord for QueueEntry {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let dist = self
-            .current_pos
-            .manhattan_distance(&(1000, 1000).into())
-            .cmp(&other.current_pos.manhattan_distance(&(1000, 1000).into()));
+fn parse_graph(input: &str, part_2: bool) -> (Graph, Vec2, Vec2) {
+    let grid = Grid::from_string(
+        input,
+        if part_2 {
+            |ch| ch == '#'
+        } else {
+            |ch| ch != '.'
+        },
+    );
 
-        self.path
-            .len()
-            .cmp(&other.path.len())
-            .then(dist)
-            .then(self.current_pos.cmp(&other.current_pos))
-            .then(self.path.cmp(&other.path))
-    }
-}
+    let mut start = None;
+    let mut end = None;
 
-// fn solve_part2(input: &str) -> usize {
-//     let grid = Grid::from_string(input, |ch| ch != '.');
-//     let walls = grid
-//         .iter_objects()
-//         .map(|(pos, _ch)| *pos)
-//         .collect::<HashSet<Vec2>>();
-//
-//     let mut queue = Vec::new();
-//     queue.push(Vec2 { x: 1, y: 0 });
-//
-//     let mut graph: HashMap<Vec2, Vec<Vec2>> = Default::default();
-//
-//     while let Some(cur) = queue.pop() {
-//         let from = cur;
-//
-//         let mut cur = cur;
-//         loop {
-//             let mut candidates = Vec::new();
-//             for dir in Direction::all() {
-//                 let next = cur.move_dir(dir);
-//
-//                 if walls.contains(&next) {
-//                     continue;
-//                 }
-//
-//                 if !grid.in_bound(next) && next.y != grid.height() as i64 {
-//                     continue;
-//                 }
-//
-//                 candidates.push(next);
-//             }
-//
-//             if candidates.len() == 1 {
-//                 // we continue moving
-//                 cur = *candidates.get(0).unwrap();
-//             } else {
-//                 let entry = graph.entry(&cur).or_insert(Vec::new());
-//                 for c in candidates {
-//                     entry.push(c);
-//                 }
-//
-//             }
-//
-//
-//         }
-//     }
-//
-//     0
-// }
-//
-
-fn herp_derp(input: &str) -> usize {
-    let grid = Grid::from_string(input, |ch| ch == '#');
-    let walls = grid
-        .iter_objects()
-        .map(|(pos, _ch)| *pos)
-        .collect::<HashSet<Vec2>>();
-
-    let start = Vec2 { x: 1, y: 0 };
-
-    let mut queue: VecDeque<QueueEntry> = Default::default();
-    queue.push_front(QueueEntry {
-        current_pos: start,
-        path: vec![start],
-    });
-
-    let mut result = Vec::new();
-    let mut max = 0usize;
-    let mut counter = 0;
-
-    while let Some(QueueEntry {
-        current_pos: cur,
-        path,
-    }) = queue.pop_front()
-    {
-        counter += 1;
-
-        if counter % 10_000 == 0 {
-            println!(
-                "QUEUE = {} RESULTS = {} BEST = {}",
-                queue.len(),
-                result.len(),
-                max
-            );
+    let end_y = grid.height() as i64 - 1;
+    for x in 0..(grid.width() as i64) {
+        if grid.object_at(x, 0).is_none() {
+            debug_assert_eq!(start, None, "must only have a single start location");
+            start = Some(Vec2 { x, y: 0 });
         }
 
-        for dir in [
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-            Direction::Up,
-        ] {
-            let next = cur.move_dir(dir);
+        if grid.object_at(x, end_y).is_none() {
+            debug_assert_eq!(end, None, "must only have a single end location");
+            end = Some(Vec2 { x, y: end_y });
+        }
+    }
 
-            if next.y == (grid.height as i64) && grid.object_at(next.x, next.y).is_none() {
-                // Reached the end
-                result.push(path.clone());
+    let start = start.expect("must have a start");
+    let end = end.expect("must have a end");
 
-                let l = path.len();
+    #[cfg(debug_assertions)]
+    println!("Found start {} and end {}", start, end);
 
-                if l > max {
-                    max = l;
-                    println!("Some result: {}", path.len());
+    let mut graph: Graph = Default::default();
+    for y in 0..grid.height() as i64 {
+        for x in 0..grid.width() as i64 {
+            let cur: Vec2 = (x, y).into();
+            let all_directions = &Direction::all();
+            let directions: &[Direction] = match grid.object_at(x, y) {
+                None => all_directions,
+                Some('>') => &[Direction::Right],
+                Some('<') => &[Direction::Left],
+                Some('^') => &[Direction::Up],
+                Some('v') => &[Direction::Down],
+                Some('#') => &[],
+                _ => unreachable!("this can never happen"),
+            };
+
+            for dir in directions {
+                let next = cur.move_dir(*dir);
+
+                if grid.get_object(&next) != Some('#') && grid.in_bound(next) {
+                    graph.entry(cur).or_default().push((next, 1));
+                } else {
+                    continue;
                 }
-            } else if grid.in_bound(next) && !path.contains(&next) && !walls.contains(&next) {
-                // Can continue
-                let mut p = path.clone();
-                p.push(next);
-                queue.push_back(QueueEntry {
-                    current_pos: next,
-                    path: p,
-                });
             }
         }
     }
 
-    result.iter().map(|p| p.len()).max().unwrap() - 1
+    (graph, start, end)
 }
-fn solve_part1(input: &str) -> usize {
-    let grid = Grid::from_string(input, |ch| ch != '.');
 
-    let start = Vec2 { x: 1, y: 0 };
+type Graph = HashMap<Vec2, Vec<(Vec2, usize)>>;
 
-    // assert_eq!(grid.object_at(1, 0), None);
+fn dfs(graph: &Graph, start: Vec2, end: Vec2) -> usize {
+    type Path = Vec<Vec2>;
+    let mut queue: Vec<(Vec2, Path, usize)> = Default::default();
+    queue.push((start, vec![], 0));
 
-    let mut queue: BinaryHeap<QueueEntry> = Default::default();
-    queue.push(QueueEntry {
-        current_pos: start,
-        path: vec![start],
-    });
+    let mut best = 0;
+    while let Some((cur, path, distance)) = queue.pop() {
+        if cur == end {
+            best = std::cmp::max(best, distance);
+        }
 
-    let mut result = Vec::new();
-    let mut max = 0usize;
-    let mut counter = 0;
-
-    while let Some(QueueEntry {
-        current_pos: cur,
-        path,
-    }) = queue.pop()
-    {
-        counter += 1;
-
-        for dir in [
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-            Direction::Up,
-        ] {
-            let next = cur.move_dir(dir);
-
-            if next.y == (grid.height as i64) && grid.object_at(next.x, next.y).is_none() {
-                // Reached the end
-                result.push(path.clone());
-
-                let l = path.len();
-
-                if l > max {
-                    max = l;
-                    println!("Some result: {}", path.len());
-                }
+        for (dest, weight) in graph
+            .get(&cur)
+            .unwrap_or_else(|| panic!("cur {cur} did not have an entry in graph"))
+        {
+            if path.contains(dest) {
                 continue;
-            }
-
-            if grid.in_bound(next) && !path.contains(&next) {
-                let ob = grid.get_object(&next);
-
-                match (ob, dir) {
-                    (Some('>'), Direction::Right)
-                    | (Some('<'), Direction::Left)
-                    | (Some('^'), Direction::Up)
-                    | (Some('v'), Direction::Down)
-                    | (None, _) => {
-                        // Can continue
-                        let mut p = path.clone();
-                        p.push(next);
-                        queue.push(QueueEntry {
-                            current_pos: next,
-                            path: p,
-                        });
-                        // seen.insert(next, len + 1);
-                    }
-                    (Some('#'), _) | (Some(_), _) => {
-                        // Can't continue
-                    }
-                }
+            } else {
+                let mut new_path = path.clone();
+                new_path.push(*dest);
+                queue.push((*dest, new_path, distance + weight));
             }
         }
     }
 
-    result.iter().map(|p| p.len()).max().unwrap() - 1
+    best
 }
 
 #[test]
@@ -266,6 +152,7 @@ fn year_2023_day_23_example() {
 #.....###...###...#...#
 #####################.#";
 
-    assert_eq!(solve_part1(input), 94);
-    assert_eq!(herp_derp(input), 154);
+    let (p1, p2) = solve(input);
+    assert_eq!(p1, 94);
+    assert_eq!(p2, 154);
 }
