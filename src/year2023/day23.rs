@@ -8,8 +8,6 @@ create_solution!(Day23, 2023, 23);
 
 impl Solution for Day23 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
-        // self.submit_part1(solve_part1(input));
-
         let (p1, p2) = solve(input);
         self.submit_part1(p1);
         self.submit_part2(p2);
@@ -23,11 +21,8 @@ fn solve(input: &str) -> (usize, usize) {
     let p1_ans = dfs(&p1_graph, start, end);
 
     let (mut p2_graph, start, end) = parse_graph(input, true);
-    println!("Part 2 graph len pre compression {}", p2_graph.len());
     compress(&mut p2_graph);
-    println!("Part 2 graph len after compression {}", p2_graph.len());
     let p2_ans = dfs(&p2_graph, start, end);
-    // let p2_ans = 0;
 
     (p1_ans, p2_ans)
 }
