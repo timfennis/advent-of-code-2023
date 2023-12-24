@@ -11,6 +11,8 @@ anyhow = "1.0.75"
 cached = "0.46.1"
 dotenv = "0.15.0"
 itertools = "0.12.0"
+maths-rs = "0.2.5"
 num = "0.4.1"
 reqwest = { version = "0.11.22", features = ["blocking"] }
 time = { version = "0.3.30", features = ["local-offset"] }
+z3 = { version = "0.12.1"}
