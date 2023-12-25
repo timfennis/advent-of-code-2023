@@ -33,13 +33,12 @@ fn vec_from_str<T: FromStr>(input: &str) -> Vec3<T> {
             .parse::<T>()
             .unwrap_or_else(|_| panic!("cannot convert {p}"))
     });
-    let v = Vec3 {
+
+    Vec3 {
         x: coordinates.next().expect("must have x"),
         y: coordinates.next().expect("must have y"),
         z: coordinates.next().expect("must have z"),
-    };
-
-    v
+    }
 }
 fn parse<T: FromStr>(input: &str) -> Vec<Hail<T>> {
     let mut hail = Vec::new();

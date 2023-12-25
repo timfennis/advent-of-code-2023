@@ -2,15 +2,14 @@ use crate::create_solution;
 use crate::puzzle::{Answerable, Solution};
 use ahash::HashMap;
 use itertools::Itertools;
+use num::integer::lcm;
 use std::collections::{HashSet, VecDeque};
 use std::fmt::Write;
 use std::io::stdin;
-use num::integer::lcm;
 create_solution!(Day20, 2023, 20);
 
 impl Solution for Day20 {
     fn handle_input(&mut self, input: &str) -> anyhow::Result<()> {
-
         // GB FX FZ ZG ZQ PQ MJ SQ CD
         // 1  2  4  6  7  9  10 11 12
         // 11_1  _11_  1111
@@ -56,7 +55,8 @@ fn solve(input: &str) -> usize {
         } else if from.starts_with('&') {
             from = from.strip_prefix('&').unwrap();
             conjunction_modules.insert(from, Default::default());
-        } else if from == "broadcaster" {} else {
+        } else if from == "broadcaster" {
+        } else {
             panic!("invalid module");
         }
 
@@ -146,7 +146,8 @@ fn solvep2(input: &str) -> usize {
         } else if from.starts_with('&') {
             from = from.strip_prefix('&').unwrap();
             conjunction_modules.insert(from, Default::default());
-        } else if from == "broadcaster" {} else {
+        } else if from == "broadcaster" {
+        } else {
             panic!("invalid module");
         }
 
@@ -161,9 +162,6 @@ fn solvep2(input: &str) -> usize {
         }
     }
 
-    let mut low = 0;
-    let mut high = 0;
-
     let mut queue: VecDeque<(&str, &str, bool)> = Default::default();
 
     let _has_been_true: HashSet<&str> = Default::default();
@@ -171,18 +169,23 @@ fn solvep2(input: &str) -> usize {
     println!("CONJUNCTION: {}", conjunction_modules.len());
 
     // dbg!(&conjunction_modules);
-    fn wait() {
-        let mut string = String::new();
-        stdin().read_line(&mut string).unwrap();
-    }
 
+    #[allow(dead_code)]
     fn print(m: &HashMap<&str, bool>) {
         // MOST SIGNIFICANT BIT IS ON THE RIGHT SIDE
         let cells = [
-            ["GB", "FX", "BN", "FZ", "BK", "ZG", "ZQ", "TT", "PQ", "MJ", "SQ", "CD"],
-            ["HT", "VP", "QJ", "HJ", "MQ", "GZ", "DS", "BD", "LJ", "CX", "XR", "XD"],
-            ["VK", "MP", "BQ", "PR", "QL", "LT", "VD", "XF", "DB", "DZ", "GD", "CV"],
-            ["ZZ", "RZ", "ZC", "DH", "SH", "MR", "BF", "GG", "PJ", "XS", "DX", "BM"],
+            [
+                "GB", "FX", "BN", "FZ", "BK", "ZG", "ZQ", "TT", "PQ", "MJ", "SQ", "CD",
+            ],
+            [
+                "HT", "VP", "QJ", "HJ", "MQ", "GZ", "DS", "BD", "LJ", "CX", "XR", "XD",
+            ],
+            [
+                "VK", "MP", "BQ", "PR", "QL", "LT", "VD", "XF", "DB", "DZ", "GD", "CV",
+            ],
+            [
+                "ZZ", "RZ", "ZC", "DH", "SH", "MR", "BF", "GG", "PJ", "XS", "DX", "BM",
+            ],
             // ["ZZ", "RZ", "QJ", "PR", "SH", "MR", "BF", "GG", "PJ", "XS", "DX", "BM"],
             // ["VK", "MP", "BQ", "DH", "BK", "LT", "VD", "XF", "DB", "DZ", "GD", "CV"],
             // ["HT", "VP", "BN", "HJ", "MQ", "GZ", "DS", "BD", "LJ", "CX", "XR", "XD"],
@@ -191,7 +194,11 @@ fn solvep2(input: &str) -> usize {
         let mut buf = String::new();
         for cc in cells {
             for c in cc.iter().rev() {
-                let bit = if *m.get(c.to_ascii_lowercase().as_str()).unwrap() { 1 } else { 0 };
+                let bit = if *m.get(c.to_ascii_lowercase().as_str()).unwrap() {
+                    1
+                } else {
+                    0
+                };
                 buf.push_str(&format!("{}", bit));
             }
             buf.push(' ');
@@ -206,7 +213,7 @@ fn solvep2(input: &str) -> usize {
         for c in cells {
             let val = *m.get(c.to_ascii_lowercase().as_str()).unwrap();
             // println!("{c} {val}");
-            if val == false {
+            if !val {
                 return false;
             }
         }
@@ -218,11 +225,15 @@ fn solvep2(input: &str) -> usize {
     // dbg!(&v);
     // wait();
 
-    let mut vals: [HashSet<usize>; 4] = [HashSet::new(), HashSet::new(), HashSet::new(), HashSet::new()];
+    let mut vals: [HashSet<usize>; 4] = [
+        HashSet::new(),
+        HashSet::new(),
+        HashSet::new(),
+        HashSet::new(),
+    ];
 
     for presses in 1..4096 {
         queue.push_front(("YOU!", "broadcaster", false));
-
 
         // dbg!(
         //     conjunction_modules.get("ff").unwrap(),
@@ -244,7 +255,6 @@ fn solvep2(input: &str) -> usize {
         // 1  2  4  6  7  9  10 11 12
         // 11_1  _11_  1111
 
-
         // for (&name, state) in &flip_flop_modules {
         //     if *state && !has_been_true.contains(name) {
         //         has_been_true.insert(name);
@@ -252,18 +262,15 @@ fn solvep2(input: &str) -> usize {
         //     }
         // }
 
-
         while let Some((prev_module, current_module, pulse)) = queue.pop_front() {
             // println!("{current_module} {pulse}");
-            if pulse {
-                high += 1;
-            } else {
-                low += 1;
-            }
 
             // ["GB", "FX", "BN", "FZ", "BK", "ZG", "ZQ", "TT", "PQ", "MJ", "SQ", "CD"]
             // 0b111101101011
-            if all_ones(&flip_flop_modules, &["GB", "FX", "FZ", "ZG", "ZQ", "PQ", "MJ", "SQ", "CD"]) {
+            if all_ones(
+                &flip_flop_modules,
+                &["GB", "FX", "FZ", "ZG", "ZQ", "PQ", "MJ", "SQ", "CD"],
+            ) {
                 vals[0].insert(presses);
                 dbg!(&vals);
             }
@@ -272,7 +279,10 @@ fn solvep2(input: &str) -> usize {
             // 1  2  5  6  8  9  10 11 12
             // 11__  11_1  1111
 
-            if all_ones(&flip_flop_modules, &["HT", "VP", "MQ", "GZ", "BD", "LJ", "CX", "XR", "XD"]) {
+            if all_ones(
+                &flip_flop_modules,
+                &["HT", "VP", "MQ", "GZ", "BD", "LJ", "CX", "XR", "XD"],
+            ) {
                 vals[1].insert(presses);
                 dbg!(&vals);
             }
@@ -280,7 +290,10 @@ fn solvep2(input: &str) -> usize {
             // 1  2  6  8  9  10 11 12
             // 11__  _1_1  1111
 
-            if all_ones(&flip_flop_modules, &["VK", "MP", "LT", "XF", "BD", "DZ", "GD", "CV"]) {
+            if all_ones(
+                &flip_flop_modules,
+                &["VK", "MP", "LT", "XF", "BD", "DZ", "GD", "CV"],
+            ) {
                 vals[2].insert(presses);
                 dbg!(&vals);
             }
@@ -288,11 +301,13 @@ fn solvep2(input: &str) -> usize {
             // 1  5  7  9  10 11 12
             // 1___  1_1_  1111
 
-            if all_ones(&flip_flop_modules, &["ZZ", "SH", "BF", "GG", "XS", "DX", "BM"]) {
+            if all_ones(
+                &flip_flop_modules,
+                &["ZZ", "SH", "BF", "GG", "XS", "DX", "BM"],
+            ) {
                 vals[3].insert(presses);
                 dbg!(&vals);
             }
-
 
             if current_module == "rx" && !pulse {
                 return presses;
@@ -340,7 +355,10 @@ fn solvep2(input: &str) -> usize {
     // let mut ans = usize::MAX;
     dbg!(&vals);
     let mut ans = usize::MAX;
-    let l = lcm(*vals[0].iter().max().unwrap(), *vals[1].iter().max().unwrap());
+    let l = lcm(
+        *vals[0].iter().max().unwrap(),
+        *vals[1].iter().max().unwrap(),
+    );
     let l = lcm(l, *vals[2].iter().max().unwrap());
     let l = lcm(l, *vals[3].iter().max().unwrap());
     ans = std::cmp::min(l, ans);

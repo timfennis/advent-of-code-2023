@@ -80,7 +80,10 @@ impl Condition {
             // 300..700
             // split on <500
             // 300..500 && 500..700
-            assert_eq!((range.start..num).len() + (num..range.end).len(), range.len());
+            assert_eq!(
+                (range.start..num).len() + (num..range.end).len(),
+                range.len()
+            );
             (range.start..num, num..range.end)
         }
 
@@ -88,7 +91,6 @@ impl Condition {
             if !range.contains(&num) {
                 panic!("this is not supposed to happen");
             }
-
 
             // 300..700
             // split on >500
@@ -226,11 +228,7 @@ fn solve(input: &str) -> (usize, usize) {
 
     // let mut current_condition = *c;
 
-    fn find_rec(
-        ranges: PartRanges,
-        step: &str,
-        workflows: &WorkflowMap,
-    ) -> usize {
+    fn find_rec(ranges: PartRanges, step: &str, workflows: &WorkflowMap) -> usize {
         if step == "A" {
             return ranges.0.len() * ranges.1.len() * ranges.2.len() * ranges.3.len();
         }
@@ -244,7 +242,6 @@ fn solve(input: &str) -> (usize, usize) {
         let mut ans = 0;
         let mut cur_ranges = ranges;
         for (condition, name) in rules {
-
             match condition {
                 Condition::LessThan(_, _) | Condition::GreaterThan(_, _) => {
                     let (good, bad) = condition.split(cur_ranges.clone());
@@ -268,24 +265,8 @@ fn solve(input: &str) -> (usize, usize) {
             .iter()
             .map(|(x, m, a, s)| *x + *m + *a + *s)
             .sum(),
-        ans
+        ans,
     )
-}
-
-fn merge_range(
-    r1: Range<usize>,
-    r2: Range<usize>,
-) -> Result<Range<usize>, (Range<usize>, Range<usize>)> {
-    let ls = std::cmp::min(r1.start, r2.start);
-    let hs = std::cmp::max(r1.start, r2.start);
-    let le = std::cmp::min(r1.end, r2.end);
-    let he = std::cmp::max(r1.end, r2.end);
-
-    if hs > le {
-        return Err((ls..le, hs..he));
-    }
-
-    return Ok(ls..he);
 }
 
 #[cfg(test)]

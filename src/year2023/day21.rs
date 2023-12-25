@@ -60,7 +60,6 @@ fn solve_part2(input: &str, _probe_len: usize, steps: usize) -> usize {
         // 26 501 365
         let mut next_queue: HashSet<Vec2> = Default::default();
         for pos in queue.iter() {
-
             // Original code
             for nd in [
                 Direction::Right,
@@ -79,7 +78,6 @@ fn solve_part2(input: &str, _probe_len: usize, steps: usize) -> usize {
                 }
             }
         }
-
 
         queue = next_queue;
     }
@@ -104,12 +102,16 @@ fn solve_part2(input: &str, _probe_len: usize, steps: usize) -> usize {
         }
     }
 
-
     let possible_configurations = grid_of_grids.values().collect::<HashSet<_>>();
     dbg!(grid_of_grids.values().len());
     dbg!(possible_configurations.len());
 
-    let get = |x: i64, y: i64| grid_of_grids.get(&(x, y).into()).unwrap_or_else(|| panic!("{} {} has to be filled", x, y)).len();
+    let get = |x: i64, y: i64| {
+        grid_of_grids
+            .get(&(x, y).into())
+            .unwrap_or_else(|| panic!("{} {} has to be filled", x, y))
+            .len()
+    };
 
     // for (a, b) in &grid_of_grids {
     //     println!("{} {}", a, b.len());
@@ -155,7 +157,6 @@ fn solve_part2(input: &str, _probe_len: usize, steps: usize) -> usize {
         (total_blocks_per_direction - 1).pow(2)
     };
 
-
     println!("center_block_count {center_block_count}");
     println!("odd_block_count {odd_block_count}");
     dbg!(
@@ -197,7 +198,9 @@ fn solve_part2(input: &str, _probe_len: usize, steps: usize) -> usize {
         full_blocks_per_direction * get(-1, 1),
         full_blocks_per_direction * get(1, -1),
         full_blocks_per_direction * get(1, 1),
-    ].iter().sum();
+    ]
+    .iter()
+    .sum();
     parts
 }
 
@@ -218,7 +221,6 @@ fn solve(input: &str, steps: usize) -> usize {
     let mut lens = Vec::new();
 
     for _steps_taken in 0..steps {
-
         // 26 501 365
         let mut next_queue: HashSet<Vec2> = Default::default();
         for pos in queue.iter() {
@@ -243,49 +245,12 @@ fn solve(input: &str, steps: usize) -> usize {
         lens.push(queue.len());
     }
 
-    // let t = Grid {
-    //     width: grid.width(),
-    //     height: grid.height(),
-    //     objects: queue.iter().map(|p| (*p, 'O')).collect_vec(),
-    // };
-    //
-    // println!("{t}");
-
     queue.len()
-}
-
-// fn calc_2(f: usize) -> usize {
-//
-//     (f * 2 + 1)
-// }
-fn calculate_occupied_square_count(f: usize) -> usize {
-    let mut c = 0;
-    let mut a = 1;
-    let mut d = 1;
-    while c < f {
-        c += 1;
-        d += 2;
-        a += d;
-    }
-
-    a
 }
 
 #[cfg(test)]
 mod test {
-    use crate::year2023::day21::{calculate_occupied_square_count, solve, solve_part2};
-
-
-    #[test]
-    fn year_2023_day_21_square_count() {
-        assert_eq!(calculate_occupied_square_count(1), 4);
-        assert_eq!(calculate_occupied_square_count(9), 100);
-        assert_eq!(calculate_occupied_square_count(121), 14884);
-        assert_eq!(
-            calculate_occupied_square_count(26501365),
-            702_322_399_865_956
-        );
-    }
+    use crate::year2023::day21::{solve, solve_part2};
 
     #[test]
     fn year_2023_day_21_example_brute_force() {
