@@ -1,0 +1,26 @@
+let input = read_file("input/2023/1");
+
+let digits = ["$$$", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+let p1, p2 = 0, 0;
+for line in input.lines() {
+
+  let digits_1 = [];
+  let digits_2 = [];
+
+  for i in 0..line.len() {
+    let sub = line[i..];
+    if line[i].is_digit() {
+      digits_1.push(int(line[i]));
+      digits_2.push(int(line[i]));
+    }
+
+    for idx, d in digits.enumerate(), if sub.starts_with(d) {
+      digits_2.push(idx)
+    }
+  }
+
+  p1 += int(digits_1[0] <> digits_1[-1]);
+  p2 += int(digits_2[0] <> digits_2[-1]);
+}
+
+print(p1, p2);

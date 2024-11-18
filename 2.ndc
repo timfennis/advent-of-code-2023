@@ -1,0 +1,30 @@
+let input = read_file("input/2023/2");
+
+let rules = %{"red": 12, "green": 13, "blue": 14};
+let ans = 0;
+let p2 = 0;
+for line in input.lines() {
+  let game, rest = line.split(": ");
+  let id = game.split()[-1].int();
+
+  let ok = true;
+  let max = %{:0};
+  for try in rest.split("; ") {
+    for cube in try.split(", ") {
+      let amount, color = cube.split(" ");
+      amount = amount.int();
+      max[color] max= amount;
+      if amount > rules[color] {
+        ok = false;
+      }
+    }
+  }
+
+  p2 += max.values().product(); 
+
+  if ok {
+    ans += id;
+  }
+}
+
+print(ans, p2);
